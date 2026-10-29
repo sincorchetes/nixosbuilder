@@ -25,9 +25,9 @@ jobs:
     permissions:
       contents: write # to create the Release
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-devenv
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: indexes
           path: public
@@ -40,7 +40,7 @@ jobs:
           name="nixosbuilder-site-${GITHUB_REF_NAME//\//-}"
           (cd dist && zip -qr "../$name.zip" .)
           echo "ASSET=$name.zip" >> "$GITHUB_ENV"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: release-site
           path: ${{ env.ASSET }}

@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-devenv
       - name: Format and lint (Biome)
         run: devenv shell -- lint
@@ -35,7 +35,7 @@ jobs:
         run: devenv shell -- check
       - name: Tests with coverage gate (100% of lines)
         run: devenv shell -- unit
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: coverage/lcov.info
@@ -47,12 +47,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-devenv
       - id: week
         run: echo "key=$(date +%G-%V)" >> "$GITHUB_OUTPUT"
       # The scripts reuse indexes younger than 3 days; the weekly cache avoids regenerating them on every PR.
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: |
             public/packages
@@ -61,7 +61,7 @@ jobs:
           key: indexes-${{ steps.week.outputs.key }}-${{ hashFiles('src/lib/software.ts', 'scripts/**') }}
           restore-keys: indexes-${{ steps.week.outputs.key }}-
       - run: devenv shell -- packages
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: indexes
           path: |
@@ -77,15 +77,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-devenv
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: indexes
           path: public
       # site-build does not regenerate the indexes (they come from the previous job), unlike `build`.
       - run: devenv shell -- site-build
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist
@@ -101,9 +101,9 @@ jobs:
       matrix:
         channel: ['25.11', '26.05', unstable]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-devenv
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: indexes
           path: public
@@ -115,9 +115,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-devenv
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist
@@ -131,7 +131,7 @@ jobs:
     # The server must be reachable from GitHub (localhost will not work).
     if: ${{ vars.SONAR_HOST_URL != '' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-devenv
       - run: devenv shell -- sonar
         env:
