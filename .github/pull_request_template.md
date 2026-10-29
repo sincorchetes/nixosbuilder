@@ -1,14 +1,14 @@
-## Qué cambia
+## What changes
 
-<!-- Una o dos frases. Enlaza la incidencia si existe: Closes #123 -->
+<!-- One or two sentences. Link the issue if there is one: Closes #123 -->
 
-## Cómo se ha probado
+## How it was tested
 
-- [ ] `bun run check` y `bun test`
-- [ ] `bun run test:nix` si cambia lo que se genera (o lo ejecutará la CI)
-- [ ] `bun run test:e2e` si cambia la interfaz
-- [ ] Textos nuevos con su traducción en `src/lib/en/`
+- [ ] `devenv test` (lint, types and tests with the coverage gate)
+- [ ] `devenv shell -- nix-eval` if what gets generated changes (or CI will run it)
+- [ ] `devenv shell -- e2e` if the interface changes
+- [ ] New texts have their translation in `src/lib/en/`
 
-## Notas para quien revise
+## Notes for reviewers
 
-<!-- Decisiones, límites conocidos, capturas si cambia la interfaz -->
+<!-- Decisions, known limits, screenshots if the interface changes -->

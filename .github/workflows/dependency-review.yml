@@ -1,4 +1,4 @@
-name: Revisión de dependencias
+name: Dependency review
 
 on:
   pull_request:
@@ -8,6 +8,7 @@ permissions:
 
 jobs:
   review:
+    name: Dependency review
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

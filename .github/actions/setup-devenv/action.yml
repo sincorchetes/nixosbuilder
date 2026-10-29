@@ -1,5 +1,5 @@
-name: Preparar devenv
-description: Instala Nix y devenv y comprueba que bun.lock está al día. El resto de pasos se ejecutan con `devenv shell -- <script>`.
+name: Set up devenv
+description: Installs Nix and devenv and checks that bun.lock is up to date. Every other step runs with `devenv shell -- <script>`.
 
 runs:
   using: composite
@@ -8,9 +8,9 @@ runs:
     - uses: cachix/cachix-action@v15
       with:
         name: devenv
-    - name: Instalar devenv
+    - name: Install devenv
       shell: bash
       run: nix profile install nixpkgs#devenv
-    - name: Dependencias (bun.lock congelado)
+    - name: Dependencies (frozen bun.lock)
       shell: bash
       run: devenv shell -- bun install --frozen-lockfile

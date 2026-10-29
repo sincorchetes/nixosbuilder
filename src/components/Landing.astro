@@ -7,6 +7,8 @@ interface Props { lang: Lang }
 const { lang } = Astro.props;
 const tt = (text: string) => translate(lang, text);
 const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+// hreflang y canonical exigen URL absoluta: se usa `site` (en local, sin `site`, queda relativa)
+const absolute = (path: string) => (Astro.site ? new URL(path, Astro.site).href : path);
 const home = lang === 'en' ? `${base}en/` : base;
 const other = lang === 'en' ? { href: base, label: 'ES', name: 'Español' } : { href: `${base}en/`, label: 'EN', name: 'English' };
 ---
@@ -18,8 +20,10 @@ const other = lang === 'en' ? { href: base, label: 'ES', name: 'Español' } : { 
     <meta name="viewport" content="width=device-width" />
     <meta name="theme-color" content="#f4f7fc" />
     <meta name="description" content={tt('Genera una configuración declarativa de NixOS con flakes, Home Manager y disko. Gratis, sin registro y sin backend. Herramienta no oficial.')} />
-    <link rel="alternate" hreflang="es" href={base} />
-    <link rel="alternate" hreflang="en" href={`${base}en/`} />
+    <link rel="canonical" href={absolute(home)} />
+    <link rel="alternate" hreflang="es" href={absolute(base)} />
+    <link rel="alternate" hreflang="en" href={absolute(`${base}en/`)} />
+    <link rel="alternate" hreflang="x-default" href={absolute(base)} />
     <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
     <title>{tt('NixOSBuilder — Tu NixOS, a tu manera')}</title>
   </head>
@@ -124,7 +128,7 @@ const other = lang === 'en' ? { href: base, label: 'ES', name: 'Español' } : { 
       <p>{tt('Hecho para la comunidad NixOS. Tus datos nunca salen del navegador.')}</p>
       <span>{tt('Generador determinista · Sin backend · Sin registro')}</span>
       <p class="legal">{tt('NixOSBuilder es un proyecto independiente y no oficial. «NixOS» y su logotipo son marcas de la NixOS Foundation.')}</p>
-      <p class="legal">{tt('Software libre bajo licencia GPLv3 o posterior. Copyright © 2026 sincorchetes.')} <a href={`${base}LICENSE.txt`}>{tt('Licencia')}</a> · <a href={`${base}CREDITS.txt`}>{tt('Créditos')}</a></p>
+      <p class="legal">{tt('Software libre bajo licencia GPLv3 o posterior. Copyright © 2026 sincorchetes.')} <a href={`${base}LICENSE.txt`}>{tt('Licencia')}</a> · <a href={`${base}CREDITS.txt`}>{tt('Créditos')}</a> · <a href="https://sincorchetes.tech" rel="author noopener">sincorchetes.tech</a></p>
       <p class="legal">{tt('Esta herramienta se ha desarrollado con la ayuda de inteligencia artificial. El generador en sí es determinista y no usa IA al funcionar: revisa siempre los archivos antes de aplicarlos.')}</p>
     </footer>
 

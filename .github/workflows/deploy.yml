@@ -1,11 +1,11 @@
-name: Deploy a GitHub Pages
+name: Deploy to GitHub Pages
 
-# Publica en cada push a main, a mano y cada lunes (para renovar los índices de nixpkgs y detectar
-# a tiempo cambios en NixOS que rompan las configuraciones generadas).
+# Publishes on every push to main, manually, and every Monday (to refresh the nixpkgs indexes and catch
+# NixOS changes that would break the generated configurations as early as possible).
 #
-# Ajustes opcionales (Settings → Secrets and variables → Actions → Variables):
-#   PAGES_SITE  origen del sitio; por defecto https://<propietario>.github.io (o tu dominio propio)
-#   PAGES_BASE  ruta base; por defecto /<repositorio>/, o / si el repositorio es <usuario>.github.io
+# Optional settings (Settings → Secrets and variables → Actions → Variables):
+#   PAGES_SITE  site origin; defaults to https://<owner>.github.io (or your custom domain)
+#   PAGES_BASE  base path; defaults to /<repository>/, or / if the repository is <user>.github.io
 on:
   push:
     branches: [main]
@@ -27,7 +27,7 @@ jobs:
     secrets: inherit
 
   build:
-    name: Build para Pages
+    name: Build for Pages
     needs: ci
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -47,7 +47,7 @@ jobs:
           path: dist
 
   deploy:
-    name: Publicar
+    name: Deploy
     needs: build
     runs-on: ubuntu-latest
     permissions:

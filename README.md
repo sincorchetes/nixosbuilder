@@ -53,9 +53,9 @@ packages              # regenerate the nixpkgs and Home Manager indexes
 
 To publish: *Settings → Pages → Build and deployment → Source: GitHub Actions*. Optional repository
 variables: `PAGES_SITE`, `PAGES_BASE` (custom domain) and `SONAR_HOST_URL` (plus the `SONAR_TOKEN` secret).
-In the branch protection rules for `main`, require the **CI correcto**, **CodeQL** and **Secret scan** checks.
+In the branch protection rules for `main`, require the **CI passed**, **CodeQL** and **Secret scan** checks.
 
 ## License
 
-[GNU General Public License v3.0 or later](LICENSE). Copyright © 2026 sincorchetes. Credits and
+[GNU General Public License v3.0 or later](LICENSE). Copyright © 2026 [sincorchetes](https://sincorchetes.tech). Credits and
 third-party software in [CREDITS.md](CREDITS.md).
