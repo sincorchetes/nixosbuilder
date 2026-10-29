@@ -1,0 +1,25 @@
+name: Error
+description: Algo no funciona o la configuración generada no evalúa
+labels: [bug]
+body:
+  - type: textarea
+    id: que
+    attributes:
+      label: Qué ha pasado
+      description: Qué esperabas y qué ocurrió. Si es un error de Nix, pega el mensaje completo.
+    validations:
+      required: true
+  - type: input
+    id: canal
+    attributes:
+      label: Canal de NixOS
+      placeholder: 25.11 / 26.05 / unstable
+  - type: textarea
+    id: pasos
+    attributes:
+      label: Opciones elegidas
+      description: Perfil, escritorio, disco, Secure Boot… o el .zip generado (sin datos personales).
+  - type: input
+    id: navegador
+    attributes:
+      label: Navegador y sistema

@@ -1,0 +1,31 @@
+{
+  "name": "nixbuilder",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Generador determinista de configuraciones de NixOS (proyecto no oficial)",
+  "license": "GPL-3.0-or-later",
+  "author": "sincorchetes",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "tsc --noEmit -p .",
+    "packages": "bun scripts/gen-all.mjs",
+    "predev": "bun scripts/gen-all.mjs",
+    "prebuild": "bun scripts/gen-all.mjs",
+    "test": "bun test",
+    "test:nix": "bun tests/nix-eval.ts",
+    "test:e2e": "bun tests/e2e/browser.ts",
+    "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage"
+  },
+  "dependencies": {
+    "@astrojs/svelte": "^9.1.2",
+    "astro": "^7.4.4",
+    "fflate": "^0.8.3",
+    "svelte": "^5.57.3"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}

@@ -1,0 +1,1655 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`instantáneas configuración por defecto 1`] = `
+"===== configuration.nix =====
+# ⚠ Antes de reiniciar: asigna una contraseña a root y a tu usuario
+#   (passwd root · passwd nixuser) o no podrás iniciar sesión.
+{ config, pkgs, ... }:
+{
+  imports = [
+    ./hardware-configuration.nix
+  ];
+
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
+  services.fstrim.enable = true;
+
+  networking.hostName = "nixos";
+  networking.networkmanager.enable = true;
+
+  time.timeZone = "Europe/Madrid";
+  i18n.defaultLocale = "es_ES.UTF-8";
+  console.keyMap = "es";
+  services.xserver.xkb.layout = "es";
+
+  hardware.bluetooth.enable = true;
+
+  services.displayManager.gdm.enable = true;
+  services.desktopManager.gnome.enable = true;
+
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
+
+  users.users.nixuser = {
+    isNormalUser = true;
+    description = "NixOS User";
+    extraGroups = [ "wheel" "networkmanager" ];
+  };
+
+  environment.systemPackages = with pkgs; [ git curl wget vim ];
+
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
+  home-manager.useGlobalPkgs = true;
+  home-manager.useUserPackages = true;
+  home-manager.users.nixuser = import ./home.nix;
+  home-manager.backupFileExtension = "backup";
+
+  system.stateVersion = "26.05";
+}
+
+===== flake.nix =====
+{
+  description = "Configuración de NixOS generada con NixOSBuilder";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    home-manager = {
+      url = "github:nix-community/home-manager/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs = inputs@{ nixpkgs, ... }: {
+    nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      specialArgs = { inherit inputs; };
+      modules = [
+        ./configuration.nix
+        inputs.home-manager.nixosModules.home-manager
+      ];
+    };
+  };
+}
+
+===== hardware-configuration.nix =====
+{ ... }:
+{
+}
+
+===== home.nix =====
+{ pkgs, ... }:
+{
+  home.username = "nixuser";
+  home.homeDirectory = "/home/nixuser";
+  home.stateVersion = "26.05";
+
+  programs.home-manager.enable = true;
+
+  home.packages = with pkgs; [ fastfetch ];
+
+  imports = [
+    ./home/git.nix
+    ./home/bash.nix
+  ];
+}
+
+===== home/bash.nix =====
+{ config, lib, pkgs, ... }:
+{
+  programs.bash.enable = true;
+
+  # Pega aquí tu configuración de programs.bash (opciones de Home Manager).
+}
+
+===== home/git.nix =====
+{ config, lib, pkgs, ... }:
+{
+  programs.git.enable = true;
+
+  # Pega aquí tu configuración de programs.git (opciones de Home Manager).
+}
+"
+`;
+
+exports[`instantáneas KDE con disko cifrado, Secure Boot y Home Manager 1`] = `
+"===== configuration.nix =====
+# ⚠ Antes de reiniciar: asigna una contraseña a root y a tu usuario
+#   (passwd root · passwd nixuser) o no podrás iniciar sesión.
+{ config, lib, pkgs, ... }:
+{
+  imports = [
+    ./hardware-configuration.nix
+    ./disko.nix
+  ];
+
+  # Secure Boot con lanzaboote (sustituye a systemd-boot).
+  boot.bootspec.enable = true;
+  boot.loader.systemd-boot.enable = lib.mkForce false;
+  boot.lanzaboote = {
+    enable = true;
+    pkiBundle = "/var/lib/sbctl";
+  };
+  boot.loader.efi.canTouchEfiVariables = true;
+
+  networking.hostName = "nixos";
+  networking.networkmanager.enable = true;
+
+  time.timeZone = "Europe/Madrid";
+  i18n.defaultLocale = "es_ES.UTF-8";
+  console.keyMap = "es";
+  services.xserver.xkb.layout = "es";
+
+  hardware.bluetooth.enable = true;
+
+  services.displayManager.sddm.enable = true;
+  services.displayManager.sddm.wayland.enable = true;
+  services.desktopManager.plasma6.enable = true;
+  services.displayManager.defaultSession = "plasma";
+
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
+
+  users.users.nixuser = {
+    isNormalUser = true;
+    description = "NixOS User";
+    extraGroups = [ "wheel" "networkmanager" ];
+  };
+
+  environment.systemPackages = with pkgs; [ git curl wget vim sbctl ];
+
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
+  home-manager.useGlobalPkgs = true;
+  home-manager.useUserPackages = true;
+  home-manager.users.nixuser = import ./home.nix;
+  home-manager.backupFileExtension = "backup";
+
+  system.stateVersion = "26.05";
+}
+
+===== disko.nix =====
+{ ... }:
+{
+  disko.devices = {
+    disk.main = {
+      device = "/dev/sda";
+      type = "disk";
+      content = {
+        type = "gpt";
+        partitions = {
+          ESP = {
+            size = "1G";
+            type = "EF00";
+            content = {
+              type = "filesystem";
+              format = "vfat";
+              mountpoint = "/boot";
+              mountOptions = [ "umask=0077" ];
+            };
+          };
+          root = {
+            size = "100%";
+            content = {
+              type = "luks";
+              name = "cryptroot";
+              settings.allowDiscards = true;
+              content = {
+                type = "btrfs";
+                extraArgs = [ "-f" ];
+                subvolumes = {
+                  "@" = {
+                    mountpoint = "/";
+                    mountOptions = [ "compress=zstd" "noatime" "discard=async" ];
+                  };
+                  "@home" = {
+                    mountpoint = "/home";
+                    mountOptions = [ "compress=zstd" "noatime" "discard=async" ];
+                  };
+                  "@nix" = {
+                    mountpoint = "/nix";
+                    mountOptions = [ "compress=zstd" "noatime" "discard=async" ];
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+
+  };
+}
+
+===== flake.nix =====
+{
+  description = "Configuración de NixOS generada con NixOSBuilder";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    home-manager = {
+      url = "github:nix-community/home-manager/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    disko = {
+      url = "github:nix-community/disko/latest";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    lanzaboote = {
+      url = "github:nix-community/lanzaboote/v1.2.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs = inputs@{ nixpkgs, ... }: {
+    nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      specialArgs = { inherit inputs; };
+      modules = [
+        ./configuration.nix
+        inputs.disko.nixosModules.disko
+        inputs.home-manager.nixosModules.home-manager
+        inputs.lanzaboote.nixosModules.lanzaboote
+      ];
+    };
+  };
+}
+
+===== hardware-configuration.nix =====
+{ ... }:
+{
+}
+
+===== home.nix =====
+{ pkgs, ... }:
+{
+  home.username = "nixuser";
+  home.homeDirectory = "/home/nixuser";
+  home.stateVersion = "26.05";
+
+  programs.home-manager.enable = true;
+
+  home.packages = with pkgs; [ ripgrep ];
+
+  imports = [
+    ./home/zsh.nix
+    ./home/git.nix
+  ];
+}
+
+===== home/git.nix =====
+{ config, lib, pkgs, ... }:
+{
+  programs.git.enable = true;
+
+  # Pega aquí tu configuración de programs.git (opciones de Home Manager).
+}
+
+===== home/zsh.nix =====
+{ config, lib, pkgs, ... }:
+{
+  programs.zsh.enable = true;
+
+  programs.zsh.enableCompletion = true;
+}
+"
+`;
+
+exports[`instantáneas servidor con servicios, firewall y ZFS 1`] = `
+"===== configuration.nix =====
+# ⚠ Antes de reiniciar: asigna una contraseña a root y a tu usuario
+#   (passwd root · passwd nixuser) o no podrás iniciar sesión.
+{ config, pkgs, ... }:
+{
+  imports = [
+    ./hardware-configuration.nix
+    ./disko.nix
+  ];
+
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
+  # ZFS
+  networking.hostId = "5460247a";
+  boot.supportedFilesystems = [ "zfs" ];
+  boot.zfs.forceImportRoot = false;
+  services.zfs.autoScrub.enable = true;
+  services.zfs.trim.enable = true;
+
+  networking.hostName = "nixos";
+  networking.networkmanager.enable = true;
+
+  time.timeZone = "Europe/Madrid";
+  i18n.defaultLocale = "es_ES.UTF-8";
+  console.keyMap = "es";
+
+  services.openssh.enable = true;
+
+  services.nginx.enable = true;
+  services.postgresql.enable = true;
+  services.postgresql.package = pkgs.postgresql_16;
+  virtualisation.docker.enable = true;
+  services.tailscale.enable = true;
+
+  networking.firewall = {
+    enable = true;
+    allowedTCPPorts = [ 8080 80 443 ];
+    allowedUDPPorts = [ 41641 ];
+    allowPing = false;
+  };
+
+  users.users.nixuser = {
+    isNormalUser = true;
+    description = "NixOS User";
+    extraGroups = [ "wheel" "docker" "networkmanager" ];
+  };
+
+  environment.systemPackages = with pkgs; [ git curl wget vim ];
+
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
+  home-manager.useGlobalPkgs = true;
+  home-manager.useUserPackages = true;
+  home-manager.users.nixuser = import ./home.nix;
+  home-manager.backupFileExtension = "backup";
+
+  system.stateVersion = "26.05";
+}
+
+===== disko.nix =====
+{ ... }:
+{
+  disko.devices = {
+    disk.main = {
+      device = "/dev/sda";
+      type = "disk";
+      content = {
+        type = "gpt";
+        partitions = {
+          ESP = {
+            size = "1G";
+            type = "EF00";
+            content = {
+              type = "filesystem";
+              format = "vfat";
+              mountpoint = "/boot";
+              mountOptions = [ "umask=0077" ];
+            };
+          };
+          root = {
+            size = "100%";
+            content = {
+              type = "zfs";
+              pool = "zroot";
+            };
+          };
+        };
+      };
+    };
+    zpool.zroot = {
+      type = "zpool";
+      options = {
+        ashift = "12";
+        autotrim = "on";
+      };
+      rootFsOptions = {
+        compression = "zstd";
+        acltype = "posixacl";
+        xattr = "sa";
+        mountpoint = "none";
+      };
+      datasets = {
+        root = {
+          type = "zfs_fs";
+          mountpoint = "/";
+          options.mountpoint = "legacy";
+        };
+        nix = {
+          type = "zfs_fs";
+          mountpoint = "/nix";
+          options.mountpoint = "legacy";
+        };
+        home = {
+          type = "zfs_fs";
+          mountpoint = "/home";
+          options.mountpoint = "legacy";
+        };
+      };
+    };
+  };
+}
+
+===== flake.nix =====
+{
+  description = "Configuración de NixOS generada con NixOSBuilder";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    home-manager = {
+      url = "github:nix-community/home-manager/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    disko = {
+      url = "github:nix-community/disko/latest";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs = inputs@{ nixpkgs, ... }: {
+    nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      specialArgs = { inherit inputs; };
+      modules = [
+        ./configuration.nix
+        inputs.disko.nixosModules.disko
+        inputs.home-manager.nixosModules.home-manager
+      ];
+    };
+  };
+}
+
+===== hardware-configuration.nix =====
+{ ... }:
+{
+}
+
+===== home.nix =====
+{ pkgs, ... }:
+{
+  home.username = "nixuser";
+  home.homeDirectory = "/home/nixuser";
+  home.stateVersion = "26.05";
+
+  programs.home-manager.enable = true;
+
+  home.packages = with pkgs; [ fastfetch ];
+
+  imports = [
+    ./home/git.nix
+    ./home/bash.nix
+  ];
+}
+
+===== home/bash.nix =====
+{ config, lib, pkgs, ... }:
+{
+  programs.bash.enable = true;
+
+  # Pega aquí tu configuración de programs.bash (opciones de Home Manager).
+}
+
+===== home/git.nix =====
+{ config, lib, pkgs, ... }:
+{
+  programs.git.enable = true;
+
+  # Pega aquí tu configuración de programs.git (opciones de Home Manager).
+}
+"
+`;
+
+exports[`instantáneas esquema propio sin disko, con swap y LUKS 1`] = `
+"===== configuration.nix =====
+# ⚠ Antes de reiniciar: asigna una contraseña a root y a tu usuario
+#   (passwd root · passwd nixuser) o no podrás iniciar sesión.
+{ config, pkgs, ... }:
+{
+  imports = [
+    ./hardware-configuration.nix
+    ./filesystems.nix
+  ];
+
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
+  services.fstrim.enable = true;
+
+  networking.hostName = "nixos";
+  networking.networkmanager.enable = true;
+
+  time.timeZone = "Europe/Madrid";
+  i18n.defaultLocale = "es_ES.UTF-8";
+  console.keyMap = "es";
+  services.xserver.xkb.layout = "es";
+
+  hardware.bluetooth.enable = true;
+
+  services.displayManager.gdm.enable = true;
+  services.desktopManager.gnome.enable = true;
+
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
+
+  users.users.nixuser = {
+    isNormalUser = true;
+    description = "NixOS User";
+    extraGroups = [ "wheel" "networkmanager" ];
+  };
+
+  environment.systemPackages = with pkgs; [ git curl wget vim ];
+
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
+  home-manager.useGlobalPkgs = true;
+  home-manager.useUserPackages = true;
+  home-manager.users.nixuser = import ./home.nix;
+  home-manager.backupFileExtension = "backup";
+
+  system.stateVersion = "26.05";
+}
+
+===== filesystems.nix =====
+{ ... }:
+{
+  boot.initrd.luks.devices."crypt-root" = {
+    device = "/dev/disk/by-partlabel/root";
+    allowDiscards = true;
+  };
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-partlabel/esp";
+    fsType = "vfat";
+    options = [ "umask=0077" ];
+  };
+  fileSystems."/" = {
+    device = "/dev/mapper/crypt-root";
+    fsType = "btrfs";
+    options = [ "compress=zstd" "noatime" "discard=async" ];
+  };
+  swapDevices = [
+    { device = "/dev/disk/by-partlabel/swap"; }
+  ];
+}
+
+===== flake.nix =====
+{
+  description = "Configuración de NixOS generada con NixOSBuilder";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    home-manager = {
+      url = "github:nix-community/home-manager/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs = inputs@{ nixpkgs, ... }: {
+    nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      specialArgs = { inherit inputs; };
+      modules = [
+        ./configuration.nix
+        inputs.home-manager.nixosModules.home-manager
+      ];
+    };
+  };
+}
+
+===== hardware-configuration.nix =====
+{ ... }:
+{
+}
+
+===== home.nix =====
+{ pkgs, ... }:
+{
+  home.username = "nixuser";
+  home.homeDirectory = "/home/nixuser";
+  home.stateVersion = "26.05";
+
+  programs.home-manager.enable = true;
+
+  home.packages = with pkgs; [ fastfetch ];
+
+  imports = [
+    ./home/git.nix
+    ./home/bash.nix
+  ];
+}
+
+===== home/bash.nix =====
+{ config, lib, pkgs, ... }:
+{
+  programs.bash.enable = true;
+
+  # Pega aquí tu configuración de programs.bash (opciones de Home Manager).
+}
+
+===== home/git.nix =====
+{ config, lib, pkgs, ... }:
+{
+  programs.git.enable = true;
+
+  # Pega aquí tu configuración de programs.git (opciones de Home Manager).
+}
+
+===== partition.sh =====
+#!/usr/bin/env bash
+# Generado por NixOSBuilder. REVÍSALO línea a línea antes de ejecutarlo como root:
+# crea particiones y formatea. Los datos de lo que formatees se perderán.
+set -euo pipefail
+
+DISK=/dev/nvme0n1
+
+# Borra la tabla de particiones y crea una GPT nueva.
+sgdisk --zap-all "$DISK"
+sgdisk -n 0:0:+1G -t 0:EF00 -c 0:esp "$DISK"
+sgdisk -n 0:0:+8G -t 0:8200 -c 0:swap "$DISK"
+sgdisk -n 0:0:0 -t 0:8309 -c 0:root "$DISK"
+partprobe "$DISK"
+udevadm settle
+
+# Cifrado LUKS (pedirá la contraseña)
+cryptsetup luksFormat /dev/disk/by-partlabel/root
+cryptsetup open /dev/disk/by-partlabel/root crypt-root
+
+# Sistemas de archivos
+mkfs.fat -F 32 /dev/disk/by-partlabel/esp
+mkswap -L swap /dev/disk/by-partlabel/swap
+mkfs.btrfs -f -L root /dev/mapper/crypt-root
+
+# Montaje en /mnt
+mount --mkdir /dev/mapper/crypt-root /mnt
+mount --mkdir -o umask=0077 /dev/disk/by-partlabel/esp /mnt/boot
+swapon /dev/disk/by-partlabel/swap
+"
+`;
+
+exports[`instantáneas perfil gamer con todo el catálogo disponible 1`] = `
+"===== configuration.nix =====
+# ⚠ Antes de reiniciar: asigna una contraseña a root y a tu usuario
+#   (passwd root · passwd nixuser) o no podrás iniciar sesión.
+{ config, pkgs, ... }:
+{
+  imports = [
+    ./hardware-configuration.nix
+    ./profile-apps.nix
+  ];
+
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
+  services.fstrim.enable = true;
+
+  networking.hostName = "nixos";
+  networking.networkmanager.enable = true;
+
+  time.timeZone = "Europe/Madrid";
+  i18n.defaultLocale = "es_ES.UTF-8";
+  console.keyMap = "es";
+  services.xserver.xkb.layout = "es";
+
+  hardware.bluetooth.enable = true;
+
+  services.displayManager.sddm.enable = true;
+  services.displayManager.sddm.wayland.enable = true;
+  services.desktopManager.plasma6.enable = true;
+  services.displayManager.defaultSession = "plasma";
+
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
+
+  programs.steam.enable = true;
+  programs.steam.remotePlay.openFirewall = true;
+  programs.gamemode.enable = true;
+  programs.gamescope.enable = true;
+
+  users.users.nixuser = {
+    isNormalUser = true;
+    description = "NixOS User";
+    extraGroups = [ "wheel" "networkmanager" ];
+  };
+
+  environment.systemPackages = with pkgs; [ git curl wget vim ];
+
+  nixpkgs.config.allowUnfree = true;
+
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
+  home-manager.useGlobalPkgs = true;
+  home-manager.useUserPackages = true;
+  home-manager.users.nixuser = import ./home.nix;
+  home-manager.backupFileExtension = "backup";
+
+  system.stateVersion = "26.05";
+}
+
+===== flake.nix =====
+{
+  description = "Configuración de NixOS generada con NixOSBuilder";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    home-manager = {
+      url = "github:nix-community/home-manager/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs = inputs@{ nixpkgs, ... }: {
+    nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      specialArgs = { inherit inputs; };
+      modules = [
+        ./configuration.nix
+        inputs.home-manager.nixosModules.home-manager
+      ];
+    };
+  };
+}
+
+===== hardware-configuration.nix =====
+{ ... }:
+{
+}
+
+===== home.nix =====
+{ pkgs, ... }:
+{
+  home.username = "nixuser";
+  home.homeDirectory = "/home/nixuser";
+  home.stateVersion = "26.05";
+
+  programs.home-manager.enable = true;
+
+  home.packages = with pkgs; [ fastfetch ];
+
+  imports = [
+    ./home/git.nix
+    ./home/bash.nix
+  ];
+}
+
+===== home/bash.nix =====
+{ config, lib, pkgs, ... }:
+{
+  programs.bash.enable = true;
+
+  # Pega aquí tu configuración de programs.bash (opciones de Home Manager).
+}
+
+===== home/git.nix =====
+{ config, lib, pkgs, ... }:
+{
+  programs.git.enable = true;
+
+  # Pega aquí tu configuración de programs.git (opciones de Home Manager).
+}
+
+===== profile-apps.nix =====
+# Aplicaciones del perfil "Gamer" (generado por NixOSBuilder).
+# Añade o quita paquetes aquí. Lo que necesita configuración de sistema
+# (Steam, Docker, servicios…) está en configuration.nix.
+{ pkgs, ... }:
+{
+  environment.systemPackages = with pkgs; [
+    # Plataformas
+    heroic
+    lutris
+    bottles
+    prismlauncher
+    retroarch
+
+    # Compatibilidad
+    wine-staging
+    winetricks
+    protonup-qt
+
+    # Rendimiento
+    mangohud
+    goverlay
+
+    # Comunidad
+    discord
+    obs-studio
+  ];
+}
+"
+`;
+
+exports[`snapshots default configuration 1`] = `
+"===== configuration.nix =====
+# ⚠ Antes de reiniciar: asigna una contraseña a root y a tu usuario
+#   (passwd root · passwd nixuser) o no podrás iniciar sesión.
+{ config, pkgs, ... }:
+{
+  imports = [
+    ./hardware-configuration.nix
+  ];
+
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
+  services.fstrim.enable = true;
+
+  networking.hostName = "nixos";
+  networking.networkmanager.enable = true;
+
+  time.timeZone = "Europe/Madrid";
+  i18n.defaultLocale = "es_ES.UTF-8";
+  console.keyMap = "es";
+  services.xserver.xkb.layout = "es";
+
+  hardware.bluetooth.enable = true;
+
+  services.displayManager.gdm.enable = true;
+  services.desktopManager.gnome.enable = true;
+
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
+
+  users.users.nixuser = {
+    isNormalUser = true;
+    description = "NixOS User";
+    extraGroups = [ "wheel" "networkmanager" ];
+  };
+
+  environment.systemPackages = with pkgs; [ git curl wget vim ];
+
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
+  home-manager.useGlobalPkgs = true;
+  home-manager.useUserPackages = true;
+  home-manager.users.nixuser = import ./home.nix;
+  home-manager.backupFileExtension = "backup";
+
+  system.stateVersion = "26.05";
+}
+
+===== flake.nix =====
+{
+  description = "Configuración de NixOS generada con NixOSBuilder";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    home-manager = {
+      url = "github:nix-community/home-manager/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs = inputs@{ nixpkgs, ... }: {
+    nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      specialArgs = { inherit inputs; };
+      modules = [
+        ./configuration.nix
+        inputs.home-manager.nixosModules.home-manager
+      ];
+    };
+  };
+}
+
+===== hardware-configuration.nix =====
+{ ... }:
+{
+}
+
+===== home.nix =====
+{ pkgs, ... }:
+{
+  home.username = "nixuser";
+  home.homeDirectory = "/home/nixuser";
+  home.stateVersion = "26.05";
+
+  programs.home-manager.enable = true;
+
+  home.packages = with pkgs; [ fastfetch ];
+
+  imports = [
+    ./home/git.nix
+    ./home/bash.nix
+  ];
+}
+
+===== home/bash.nix =====
+{ config, lib, pkgs, ... }:
+{
+  programs.bash.enable = true;
+
+  # Pega aquí tu configuración de programs.bash (opciones de Home Manager).
+}
+
+===== home/git.nix =====
+{ config, lib, pkgs, ... }:
+{
+  programs.git.enable = true;
+
+  # Pega aquí tu configuración de programs.git (opciones de Home Manager).
+}
+"
+`;
+
+exports[`snapshots KDE with encrypted disko, Secure Boot and Home Manager 1`] = `
+"===== configuration.nix =====
+# ⚠ Antes de reiniciar: asigna una contraseña a root y a tu usuario
+#   (passwd root · passwd nixuser) o no podrás iniciar sesión.
+{ config, lib, pkgs, ... }:
+{
+  imports = [
+    ./hardware-configuration.nix
+    ./disko.nix
+  ];
+
+  # Secure Boot con lanzaboote (sustituye a systemd-boot).
+  boot.bootspec.enable = true;
+  boot.loader.systemd-boot.enable = lib.mkForce false;
+  boot.lanzaboote = {
+    enable = true;
+    pkiBundle = "/var/lib/sbctl";
+  };
+  boot.loader.efi.canTouchEfiVariables = true;
+
+  networking.hostName = "nixos";
+  networking.networkmanager.enable = true;
+
+  time.timeZone = "Europe/Madrid";
+  i18n.defaultLocale = "es_ES.UTF-8";
+  console.keyMap = "es";
+  services.xserver.xkb.layout = "es";
+
+  hardware.bluetooth.enable = true;
+
+  services.displayManager.sddm.enable = true;
+  services.displayManager.sddm.wayland.enable = true;
+  services.desktopManager.plasma6.enable = true;
+  services.displayManager.defaultSession = "plasma";
+
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
+
+  users.users.nixuser = {
+    isNormalUser = true;
+    description = "NixOS User";
+    extraGroups = [ "wheel" "networkmanager" ];
+  };
+
+  environment.systemPackages = with pkgs; [ git curl wget vim sbctl ];
+
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
+  home-manager.useGlobalPkgs = true;
+  home-manager.useUserPackages = true;
+  home-manager.users.nixuser = import ./home.nix;
+  home-manager.backupFileExtension = "backup";
+
+  system.stateVersion = "26.05";
+}
+
+===== disko.nix =====
+{ ... }:
+{
+  disko.devices = {
+    disk.main = {
+      device = "/dev/sda";
+      type = "disk";
+      content = {
+        type = "gpt";
+        partitions = {
+          ESP = {
+            size = "1G";
+            type = "EF00";
+            content = {
+              type = "filesystem";
+              format = "vfat";
+              mountpoint = "/boot";
+              mountOptions = [ "umask=0077" ];
+            };
+          };
+          root = {
+            size = "100%";
+            content = {
+              type = "luks";
+              name = "cryptroot";
+              settings.allowDiscards = true;
+              content = {
+                type = "btrfs";
+                extraArgs = [ "-f" ];
+                subvolumes = {
+                  "@" = {
+                    mountpoint = "/";
+                    mountOptions = [ "compress=zstd" "noatime" "discard=async" ];
+                  };
+                  "@home" = {
+                    mountpoint = "/home";
+                    mountOptions = [ "compress=zstd" "noatime" "discard=async" ];
+                  };
+                  "@nix" = {
+                    mountpoint = "/nix";
+                    mountOptions = [ "compress=zstd" "noatime" "discard=async" ];
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+
+  };
+}
+
+===== flake.nix =====
+{
+  description = "Configuración de NixOS generada con NixOSBuilder";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    home-manager = {
+      url = "github:nix-community/home-manager/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    disko = {
+      url = "github:nix-community/disko/latest";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    lanzaboote = {
+      url = "github:nix-community/lanzaboote/v1.2.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs = inputs@{ nixpkgs, ... }: {
+    nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      specialArgs = { inherit inputs; };
+      modules = [
+        ./configuration.nix
+        inputs.disko.nixosModules.disko
+        inputs.home-manager.nixosModules.home-manager
+        inputs.lanzaboote.nixosModules.lanzaboote
+      ];
+    };
+  };
+}
+
+===== hardware-configuration.nix =====
+{ ... }:
+{
+}
+
+===== home.nix =====
+{ pkgs, ... }:
+{
+  home.username = "nixuser";
+  home.homeDirectory = "/home/nixuser";
+  home.stateVersion = "26.05";
+
+  programs.home-manager.enable = true;
+
+  home.packages = with pkgs; [ ripgrep ];
+
+  imports = [
+    ./home/zsh.nix
+    ./home/git.nix
+  ];
+}
+
+===== home/git.nix =====
+{ config, lib, pkgs, ... }:
+{
+  programs.git.enable = true;
+
+  # Pega aquí tu configuración de programs.git (opciones de Home Manager).
+}
+
+===== home/zsh.nix =====
+{ config, lib, pkgs, ... }:
+{
+  programs.zsh.enable = true;
+
+  programs.zsh.enableCompletion = true;
+}
+"
+`;
+
+exports[`snapshots server with services, firewall and ZFS 1`] = `
+"===== configuration.nix =====
+# ⚠ Antes de reiniciar: asigna una contraseña a root y a tu usuario
+#   (passwd root · passwd nixuser) o no podrás iniciar sesión.
+{ config, pkgs, ... }:
+{
+  imports = [
+    ./hardware-configuration.nix
+    ./disko.nix
+  ];
+
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
+  # ZFS
+  networking.hostId = "5460247a";
+  boot.supportedFilesystems = [ "zfs" ];
+  boot.zfs.forceImportRoot = false;
+  services.zfs.autoScrub.enable = true;
+  services.zfs.trim.enable = true;
+
+  networking.hostName = "nixos";
+  networking.networkmanager.enable = true;
+
+  time.timeZone = "Europe/Madrid";
+  i18n.defaultLocale = "es_ES.UTF-8";
+  console.keyMap = "es";
+
+  services.openssh.enable = true;
+
+  services.nginx.enable = true;
+  services.postgresql.enable = true;
+  services.postgresql.package = pkgs.postgresql_16;
+  virtualisation.docker.enable = true;
+  services.tailscale.enable = true;
+
+  networking.firewall = {
+    enable = true;
+    allowedTCPPorts = [ 8080 80 443 ];
+    allowedUDPPorts = [ 41641 ];
+    allowPing = false;
+  };
+
+  users.users.nixuser = {
+    isNormalUser = true;
+    description = "NixOS User";
+    extraGroups = [ "wheel" "docker" "networkmanager" ];
+  };
+
+  environment.systemPackages = with pkgs; [ git curl wget vim ];
+
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
+  home-manager.useGlobalPkgs = true;
+  home-manager.useUserPackages = true;
+  home-manager.users.nixuser = import ./home.nix;
+  home-manager.backupFileExtension = "backup";
+
+  system.stateVersion = "26.05";
+}
+
+===== disko.nix =====
+{ ... }:
+{
+  disko.devices = {
+    disk.main = {
+      device = "/dev/sda";
+      type = "disk";
+      content = {
+        type = "gpt";
+        partitions = {
+          ESP = {
+            size = "1G";
+            type = "EF00";
+            content = {
+              type = "filesystem";
+              format = "vfat";
+              mountpoint = "/boot";
+              mountOptions = [ "umask=0077" ];
+            };
+          };
+          root = {
+            size = "100%";
+            content = {
+              type = "zfs";
+              pool = "zroot";
+            };
+          };
+        };
+      };
+    };
+    zpool.zroot = {
+      type = "zpool";
+      options = {
+        ashift = "12";
+        autotrim = "on";
+      };
+      rootFsOptions = {
+        compression = "zstd";
+        acltype = "posixacl";
+        xattr = "sa";
+        mountpoint = "none";
+      };
+      datasets = {
+        root = {
+          type = "zfs_fs";
+          mountpoint = "/";
+          options.mountpoint = "legacy";
+        };
+        nix = {
+          type = "zfs_fs";
+          mountpoint = "/nix";
+          options.mountpoint = "legacy";
+        };
+        home = {
+          type = "zfs_fs";
+          mountpoint = "/home";
+          options.mountpoint = "legacy";
+        };
+      };
+    };
+  };
+}
+
+===== flake.nix =====
+{
+  description = "Configuración de NixOS generada con NixOSBuilder";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    home-manager = {
+      url = "github:nix-community/home-manager/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    disko = {
+      url = "github:nix-community/disko/latest";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs = inputs@{ nixpkgs, ... }: {
+    nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      specialArgs = { inherit inputs; };
+      modules = [
+        ./configuration.nix
+        inputs.disko.nixosModules.disko
+        inputs.home-manager.nixosModules.home-manager
+      ];
+    };
+  };
+}
+
+===== hardware-configuration.nix =====
+{ ... }:
+{
+}
+
+===== home.nix =====
+{ pkgs, ... }:
+{
+  home.username = "nixuser";
+  home.homeDirectory = "/home/nixuser";
+  home.stateVersion = "26.05";
+
+  programs.home-manager.enable = true;
+
+  home.packages = with pkgs; [ fastfetch ];
+
+  imports = [
+    ./home/git.nix
+    ./home/bash.nix
+  ];
+}
+
+===== home/bash.nix =====
+{ config, lib, pkgs, ... }:
+{
+  programs.bash.enable = true;
+
+  # Pega aquí tu configuración de programs.bash (opciones de Home Manager).
+}
+
+===== home/git.nix =====
+{ config, lib, pkgs, ... }:
+{
+  programs.git.enable = true;
+
+  # Pega aquí tu configuración de programs.git (opciones de Home Manager).
+}
+"
+`;
+
+exports[`snapshots custom layout without disko, with swap and LUKS 1`] = `
+"===== configuration.nix =====
+# ⚠ Antes de reiniciar: asigna una contraseña a root y a tu usuario
+#   (passwd root · passwd nixuser) o no podrás iniciar sesión.
+{ config, pkgs, ... }:
+{
+  imports = [
+    ./hardware-configuration.nix
+    ./filesystems.nix
+  ];
+
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
+  services.fstrim.enable = true;
+
+  networking.hostName = "nixos";
+  networking.networkmanager.enable = true;
+
+  time.timeZone = "Europe/Madrid";
+  i18n.defaultLocale = "es_ES.UTF-8";
+  console.keyMap = "es";
+  services.xserver.xkb.layout = "es";
+
+  hardware.bluetooth.enable = true;
+
+  services.displayManager.gdm.enable = true;
+  services.desktopManager.gnome.enable = true;
+
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
+
+  users.users.nixuser = {
+    isNormalUser = true;
+    description = "NixOS User";
+    extraGroups = [ "wheel" "networkmanager" ];
+  };
+
+  environment.systemPackages = with pkgs; [ git curl wget vim ];
+
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
+  home-manager.useGlobalPkgs = true;
+  home-manager.useUserPackages = true;
+  home-manager.users.nixuser = import ./home.nix;
+  home-manager.backupFileExtension = "backup";
+
+  system.stateVersion = "26.05";
+}
+
+===== filesystems.nix =====
+{ ... }:
+{
+  boot.initrd.luks.devices."crypt-root" = {
+    device = "/dev/disk/by-partlabel/root";
+    allowDiscards = true;
+  };
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-partlabel/esp";
+    fsType = "vfat";
+    options = [ "umask=0077" ];
+  };
+  fileSystems."/" = {
+    device = "/dev/mapper/crypt-root";
+    fsType = "btrfs";
+    options = [ "compress=zstd" "noatime" "discard=async" ];
+  };
+  swapDevices = [
+    { device = "/dev/disk/by-partlabel/swap"; }
+  ];
+}
+
+===== flake.nix =====
+{
+  description = "Configuración de NixOS generada con NixOSBuilder";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    home-manager = {
+      url = "github:nix-community/home-manager/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs = inputs@{ nixpkgs, ... }: {
+    nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      specialArgs = { inherit inputs; };
+      modules = [
+        ./configuration.nix
+        inputs.home-manager.nixosModules.home-manager
+      ];
+    };
+  };
+}
+
+===== hardware-configuration.nix =====
+{ ... }:
+{
+}
+
+===== home.nix =====
+{ pkgs, ... }:
+{
+  home.username = "nixuser";
+  home.homeDirectory = "/home/nixuser";
+  home.stateVersion = "26.05";
+
+  programs.home-manager.enable = true;
+
+  home.packages = with pkgs; [ fastfetch ];
+
+  imports = [
+    ./home/git.nix
+    ./home/bash.nix
+  ];
+}
+
+===== home/bash.nix =====
+{ config, lib, pkgs, ... }:
+{
+  programs.bash.enable = true;
+
+  # Pega aquí tu configuración de programs.bash (opciones de Home Manager).
+}
+
+===== home/git.nix =====
+{ config, lib, pkgs, ... }:
+{
+  programs.git.enable = true;
+
+  # Pega aquí tu configuración de programs.git (opciones de Home Manager).
+}
+
+===== partition.sh =====
+#!/usr/bin/env bash
+# Generado por NixOSBuilder. REVÍSALO línea a línea antes de ejecutarlo como root:
+# crea particiones y formatea. Los datos de lo que formatees se perderán.
+set -euo pipefail
+
+DISK=/dev/nvme0n1
+
+# Borra la tabla de particiones y crea una GPT nueva.
+sgdisk --zap-all "$DISK"
+sgdisk -n 0:0:+1G -t 0:EF00 -c 0:esp "$DISK"
+sgdisk -n 0:0:+8G -t 0:8200 -c 0:swap "$DISK"
+sgdisk -n 0:0:0 -t 0:8309 -c 0:root "$DISK"
+partprobe "$DISK"
+udevadm settle
+
+# Cifrado LUKS (pedirá la contraseña)
+cryptsetup luksFormat /dev/disk/by-partlabel/root
+cryptsetup open /dev/disk/by-partlabel/root crypt-root
+
+# Sistemas de archivos
+mkfs.fat -F 32 /dev/disk/by-partlabel/esp
+mkswap -L swap /dev/disk/by-partlabel/swap
+mkfs.btrfs -f -L root /dev/mapper/crypt-root
+
+# Montaje en /mnt
+mount --mkdir /dev/mapper/crypt-root /mnt
+mount --mkdir -o umask=0077 /dev/disk/by-partlabel/esp /mnt/boot
+swapon /dev/disk/by-partlabel/swap
+"
+`;
+
+exports[`snapshots gamer profile with the whole available catalog 1`] = `
+"===== configuration.nix =====
+# ⚠ Antes de reiniciar: asigna una contraseña a root y a tu usuario
+#   (passwd root · passwd nixuser) o no podrás iniciar sesión.
+{ config, pkgs, ... }:
+{
+  imports = [
+    ./hardware-configuration.nix
+    ./profile-apps.nix
+  ];
+
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
+  services.fstrim.enable = true;
+
+  networking.hostName = "nixos";
+  networking.networkmanager.enable = true;
+
+  time.timeZone = "Europe/Madrid";
+  i18n.defaultLocale = "es_ES.UTF-8";
+  console.keyMap = "es";
+  services.xserver.xkb.layout = "es";
+
+  hardware.bluetooth.enable = true;
+
+  services.displayManager.sddm.enable = true;
+  services.displayManager.sddm.wayland.enable = true;
+  services.desktopManager.plasma6.enable = true;
+  services.displayManager.defaultSession = "plasma";
+
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
+
+  programs.steam.enable = true;
+  programs.steam.remotePlay.openFirewall = true;
+  programs.gamemode.enable = true;
+  programs.gamescope.enable = true;
+
+  users.users.nixuser = {
+    isNormalUser = true;
+    description = "NixOS User";
+    extraGroups = [ "wheel" "networkmanager" ];
+  };
+
+  environment.systemPackages = with pkgs; [ git curl wget vim ];
+
+  nixpkgs.config.allowUnfree = true;
+
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
+  home-manager.useGlobalPkgs = true;
+  home-manager.useUserPackages = true;
+  home-manager.users.nixuser = import ./home.nix;
+  home-manager.backupFileExtension = "backup";
+
+  system.stateVersion = "26.05";
+}
+
+===== flake.nix =====
+{
+  description = "Configuración de NixOS generada con NixOSBuilder";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    home-manager = {
+      url = "github:nix-community/home-manager/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs = inputs@{ nixpkgs, ... }: {
+    nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      specialArgs = { inherit inputs; };
+      modules = [
+        ./configuration.nix
+        inputs.home-manager.nixosModules.home-manager
+      ];
+    };
+  };
+}
+
+===== hardware-configuration.nix =====
+{ ... }:
+{
+}
+
+===== home.nix =====
+{ pkgs, ... }:
+{
+  home.username = "nixuser";
+  home.homeDirectory = "/home/nixuser";
+  home.stateVersion = "26.05";
+
+  programs.home-manager.enable = true;
+
+  home.packages = with pkgs; [ fastfetch ];
+
+  imports = [
+    ./home/git.nix
+    ./home/bash.nix
+  ];
+}
+
+===== home/bash.nix =====
+{ config, lib, pkgs, ... }:
+{
+  programs.bash.enable = true;
+
+  # Pega aquí tu configuración de programs.bash (opciones de Home Manager).
+}
+
+===== home/git.nix =====
+{ config, lib, pkgs, ... }:
+{
+  programs.git.enable = true;
+
+  # Pega aquí tu configuración de programs.git (opciones de Home Manager).
+}
+
+===== profile-apps.nix =====
+# Aplicaciones del perfil "Gamer" (generado por NixOSBuilder).
+# Añade o quita paquetes aquí. Lo que necesita configuración de sistema
+# (Steam, Docker, servicios…) está en configuration.nix.
+{ pkgs, ... }:
+{
+  environment.systemPackages = with pkgs; [
+    # Plataformas
+    heroic
+    lutris
+    bottles
+    prismlauncher
+    retroarch
+
+    # Compatibilidad
+    wine-staging
+    winetricks
+    protonup-qt
+
+    # Rendimiento
+    mangohud
+    goverlay
+
+    # Comunidad
+    discord
+    obs-studio
+  ];
+}
+"
+`;

@@ -1,0 +1,8 @@
+[test]
+# Permite probar módulos .svelte.ts (runas de Svelte) con bun test
+preload = ["./tests/support/svelte-runes.ts"]
+# La cobertura de un módulo compilado por Svelte se mide sobre el JS generado (líneas que no
+# corresponden al fuente), así que se excluye del informe; sus tests de comportamiento sí corren.
+coveragePathIgnorePatterns = ["tests/**", "src/lib/homeManager.svelte.ts"]
+# Compuerta de cobertura: `bun test --coverage` falla si baja del 100 % de líneas
+coverageThreshold = { lines = 1.0 }

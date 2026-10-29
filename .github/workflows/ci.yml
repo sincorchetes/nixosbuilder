@@ -1,0 +1,152 @@
+name: CI
+
+# Integración continua. Todos los pasos se ejecutan con devenv (`devenv shell -- <script>`), así que
+# la CI hace exactamente lo mismo que un desarrollador en local; los scripts están en devenv.nix.
+# También se reutiliza desde deploy.yml (workflow_call): nada se publica sin pasar por aquí.
+on:
+  pull_request:
+  push:
+    branches-ignore: [main] # main pasa por deploy.yml, que llama a este flujo
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# En una llamada desde otro workflow no se define grupo propio para no bloquear al llamante.
+concurrency:
+  group: ${{ github.event_name == 'workflow_call' && format('ci-call-{0}', github.run_id) || format('ci-{0}', github.ref) }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_call' }}
+
+env:
+  CI: true
+
+jobs:
+  quality:
+    name: Tipos y tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-devenv
+      - name: Formato y lint (Biome)
+        run: devenv shell -- lint
+      - name: Tipos (tsc)
+        run: devenv shell -- check
+      - name: Tests con compuerta de cobertura (100 % de líneas)
+        run: devenv shell -- unit
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/lcov.info
+          if-no-files-found: error
+          retention-days: 7
+
+  indexes:
+    name: Índices de nixpkgs y Home Manager
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-devenv
+      - id: week
+        run: echo "key=$(date +%G-%V)" >> "$GITHUB_OUTPUT"
+      # Los scripts reutilizan los índices recientes (menos de 3 días); la caché semanal evita regenerarlos en cada PR.
+      - uses: actions/cache@v4
+        with:
+          path: |
+            public/packages
+            public/hm-options
+            public/software-status.json
+          key: indexes-${{ steps.week.outputs.key }}-${{ hashFiles('src/lib/software.ts', 'scripts/**') }}
+          restore-keys: indexes-${{ steps.week.outputs.key }}-
+      - run: devenv shell -- packages
+      - uses: actions/upload-artifact@v4
+        with:
+          name: indexes
+          path: |
+            public/packages
+            public/hm-options
+            public/software-status.json
+          if-no-files-found: error
+          retention-days: 7
+
+  build:
+    name: Build
+    needs: indexes
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-devenv
+      - uses: actions/download-artifact@v4
+        with:
+          name: indexes
+          path: public
+      # site-build no regenera los índices (vienen del trabajo anterior), a diferencia de `build`.
+      - run: devenv shell -- site-build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          retention-days: 7
+
+  nix-eval:
+    name: Evaluar con Nix (${{ matrix.channel }})
+    needs: indexes
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        channel: ['25.11', '26.05', unstable]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-devenv
+      - uses: actions/download-artifact@v4
+        with:
+          name: indexes
+          path: public
+      - run: devenv shell -- nix-eval ${{ matrix.channel }}
+
+  e2e:
+    name: Pruebas en navegador
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-devenv
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - run: devenv shell -- e2e
+
+  sonar:
+    name: SonarQube
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Solo si el repositorio define la variable SONAR_HOST_URL (y el secreto SONAR_TOKEN).
+    # El servidor debe ser alcanzable desde GitHub (no sirve localhost).
+    if: ${{ vars.SONAR_HOST_URL != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-devenv
+      - run: devenv shell -- sonar
+        env:
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # Un único resultado para exigir en las reglas de protección de la rama (branch protection).
+  ci-ok:
+    name: CI correcto
+    if: ${{ always() }}
+    needs: [quality, indexes, build, nix-eval, e2e]
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          if echo "$RESULTS" | grep -Eq '"result": "(failure|cancelled)"'; then echo "Algún trabajo falló"; exit 1; fi
+          echo "Todo correcto"

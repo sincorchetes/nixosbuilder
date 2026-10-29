@@ -1,0 +1,15 @@
+name: Propuesta
+description: Una opción, perfil, módulo o mejora nueva
+labels: [enhancement]
+body:
+  - type: textarea
+    id: que
+    attributes:
+      label: Qué te gustaría poder hacer
+    validations:
+      required: true
+  - type: textarea
+    id: nix
+    attributes:
+      label: Cómo se configura en NixOS (si lo sabes)
+      description: Opciones, módulos o paquetes de nixpkgs implicados.

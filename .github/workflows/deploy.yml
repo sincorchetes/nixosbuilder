@@ -1,0 +1,61 @@
+name: Deploy a GitHub Pages
+
+# Publica en cada push a main, a mano y cada lunes (para renovar los índices de nixpkgs y detectar
+# a tiempo cambios en NixOS que rompan las configuraciones generadas).
+#
+# Ajustes opcionales (Settings → Secrets and variables → Actions → Variables):
+#   PAGES_SITE  origen del sitio; por defecto https://<propietario>.github.io (o tu dominio propio)
+#   PAGES_BASE  ruta base; por defecto /<repositorio>/, o / si el repositorio es <usuario>.github.io
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    name: CI
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+
+  build:
+    name: Build para Pages
+    needs: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-devenv
+      - uses: actions/download-artifact@v4
+        with:
+          name: indexes
+          path: public
+      - run: devenv shell -- site-build
+        env:
+          SITE: ${{ vars.PAGES_SITE || format('https://{0}.github.io', github.repository_owner) }}
+          BASE: ${{ vars.PAGES_BASE || (endsWith(github.event.repository.name, '.github.io') && '/' || format('/{0}', github.event.repository.name)) }}
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Publicar
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

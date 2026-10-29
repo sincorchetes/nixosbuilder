@@ -1,0 +1,23 @@
+node_modules/
+dist/
+.astro/
+.devenv*
+.direnv/
+.envrc
+public/packages/
+public/hm-options/
+public/software-status.json
+coverage/
+.scannerwork/
+.env
+sonar-project.properties
+public/LICENSE.txt
+public/CREDITS.txt
+
+# Configuración del editor y de asistentes locales
+.vscode/
+.continue/
+
+# Registros y archivos del sistema
+*.log
+.DS_Store

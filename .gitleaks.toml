@@ -1,0 +1,17 @@
+# Configuración de gitleaks (Secret scan). Parte de las reglas por defecto.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Salidas generadas y credenciales locales que nunca se suben (están en .gitignore)"
+paths = [
+  '''(^|/)node_modules/''',
+  '''(^|/)\.devenv/''',
+  '''(^|/)\.astro/''',
+  '''(^|/)dist/''',
+  '''(^|/)coverage/''',
+  '''(^|/)\.scannerwork/''',
+  '''(^|/)public/(packages|hm-options)/''',
+  '''(^|/)\.env$''',
+  '''(^|/)sonar-project\.properties$''',
+]

@@ -1,0 +1,44 @@
+name: Canario de NixOS
+
+# Cada día evalúa las configuraciones generadas contra los canales actuales de NixOS. Si una versión
+# de NixOS cambia o elimina una opción (como pasó con boot.bootspec en unstable), abre una incidencia.
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  nix-eval:
+    name: Evaluar (${{ matrix.channel }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        channel: ['25.11', '26.05', unstable]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-devenv
+      - run: devenv shell -- packages
+      - run: devenv shell -- nix-eval ${{ matrix.channel }}
+
+  report:
+    name: Avisar si falla
+    needs: nix-eval
+    if: ${{ failure() }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Canario: las configuraciones generadas ya no evalúan en algún canal de NixOS"
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json number --jq '.[0].number')
+          body="El canario diario falló. Revisa qué canal y qué configuración: $RUN_URL"
+          if [ -n "$existing" ]; then gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" --body "$body"
+          else gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "$body" --label bug; fi

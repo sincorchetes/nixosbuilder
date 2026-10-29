@@ -1,0 +1,164 @@
+---
+import Builder from './Builder.svelte';
+import '../styles/global.css';
+import { translate, type Lang } from '../lib/i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const tt = (text: string) => translate(lang, text);
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+const home = lang === 'en' ? `${base}en/` : base;
+const other = lang === 'en' ? { href: base, label: 'ES', name: 'Español' } : { href: `${base}en/`, label: 'EN', name: 'English' };
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="theme-color" content="#f4f7fc" />
+    <meta name="description" content={tt('Genera una configuración declarativa de NixOS con flakes, Home Manager y disko. Gratis, sin registro y sin backend. Herramienta no oficial.')} />
+    <link rel="alternate" hreflang="es" href={base} />
+    <link rel="alternate" hreflang="en" href={`${base}en/`} />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    <title>{tt('NixOSBuilder — Tu NixOS, a tu manera')}</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href={home} aria-label={tt('NixOSBuilder, inicio')}>
+        <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true">
+          <path d="M18 2 32 10v16L18 34 4 26V10Z" fill="currentColor" opacity=".12" />
+          <path d="m11 24 4-13 10 14 1-13M9 17l14-4-8 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <span>nixosbuilder</span>
+      </a>
+      <nav aria-label={tt('Navegación principal')}>
+        <a href="#generador">{tt('Generador')}</a>
+        <a href="#como-funciona">{tt('Cómo funciona')}</a>
+      </nav>
+      <div class="header-actions">
+        <a class="lang-switch" href={other.href} hreflang={lang === 'en' ? 'es' : 'en'} lang={lang === 'en' ? 'es' : 'en'} title={other.name} aria-label={other.name}>{other.label}</a>
+        <a class="header-cta" href="#generador">{tt('Crear configuración')} <span aria-hidden="true">↗</span></a>
+      </div>
+    </header>
+
+    <div class="unofficial-bar" role="note">
+      {tt('Herramienta no oficial: no está afiliada, respaldada ni mantenida por el proyecto NixOS ni por la NixOS Foundation.')}
+    </div>
+
+    <main>
+      <section class="hero">
+        <div class="parallax-scene" aria-hidden="true">
+          <svg class="plx plx-a" data-parallax="0.55" viewBox="0 0 120 120"><path d="M60 4 108 32v56L60 116 12 88V32Z" fill="none" stroke="#5277c3" stroke-width="4" /><path d="M60 30 86 45v30L60 90 34 75V45Z" fill="#5277c3" opacity=".45" /></svg>
+          <svg class="plx plx-b" data-parallax="-0.7" viewBox="0 0 120 120"><path d="M60 4 108 32v56L60 116 12 88V32Z" fill="#7ebae4" opacity=".5" /></svg>
+          <svg class="plx plx-c" data-parallax="0.9" viewBox="0 0 120 120"><path d="M60 4 108 32v56L60 116 12 88V32Z" fill="none" stroke="#7ebae4" stroke-width="4" /></svg>
+          <svg class="plx plx-d" data-parallax="-0.7" viewBox="0 0 120 120"><path d="M60 4 108 32v56L60 116 12 88V32Z" fill="#5277c3" opacity=".32" /></svg>
+          <svg class="plx plx-e" data-parallax="0.35" viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="#7ebae4" stroke-width="2" stroke-dasharray="3 9" /></svg>
+        </div>
+        <div class="hero-content" data-parallax="-0.14">
+          <div class="eyebrow"><span></span> {tt('Configuración declarativa, sin fricción')}</div>
+          <h1>{tt('Tu NixOS.')}<br /><em>{tt('A tu manera.')}</em></h1>
+          <p>
+            {tt('Convierte tus decisiones en una configuración clara y reproducible. Sin comandos misteriosos, sin cuentas y sin enviar tus datos a ningún servidor.')}
+          </p>
+          <a class="primary-button" href="#generador">{tt('Empezar a construir')} <span aria-hidden="true">↓</span></a>
+          <div class="hero-notes" aria-label={tt('Características principales')}>
+            <span>✓ {tt('100% en tu navegador')}</span>
+            <span>✓ {tt('Sin límites artificiales')}</span>
+            <span>✓ Flakes · Home Manager · disko</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="generador" class="builder-section" aria-labelledby="builder-title">
+        <div class="section-heading">
+          <div>
+            <span class="section-kicker">{tt('Generador')}</span>
+            <h2 id="builder-title">{tt('De tus ideas a archivos Nix.')}</h2>
+          </div>
+          <p>{tt('Elige, revisa y descarga. La vista previa se actualiza con cada cambio.')}</p>
+        </div>
+        <Builder client:load lang={lang} />
+      </section>
+
+      <section id="como-funciona" class="how-section" aria-labelledby="how-title">
+        <div class="parallax-scene" aria-hidden="true">
+          <svg class="plx plx-f" data-parallax="0.5" viewBox="0 0 120 120"><path d="M60 4 108 32v56L60 116 12 88V32Z" fill="none" stroke="#5277c3" stroke-width="4" /></svg>
+          <svg class="plx plx-g" data-parallax="-0.55" viewBox="0 0 120 120"><path d="M60 4 108 32v56L60 116 12 88V32Z" fill="#7ebae4" opacity=".45" /></svg>
+        </div>
+        <div class="section-heading centered">
+          <span class="section-kicker">{tt('Simple por diseño')}</span>
+          <h2 id="how-title">{tt('Nada de magia. Solo buenas plantillas.')}</h2>
+          <p>{tt('Un generador determinista: mismas respuestas, mismos archivos. Siempre.')}</p>
+        </div>
+        <div class="feature-grid">
+          <article>
+            <span class="feature-number">01</span>
+            <h3>{tt('Cuéntanos qué necesitas')}</h3>
+            <p>{tt('Hardware, arranque, escritorio, discos y paquetes. Solo decisiones, no sintaxis.')}</p>
+          </article>
+          <article>
+            <span class="feature-number">02</span>
+            <h3>{tt('Revisa cada línea')}</h3>
+            <p>{tt('Explora todos los archivos antes de descargarlos. Sin procesos ocultos ni sorpresas.')}</p>
+          </article>
+          <article>
+            <span class="feature-number">03</span>
+            <h3>{tt('Hazlo tuyo')}</h3>
+            <p>{tt('Descarga el proyecto, valida con Nix y adapta cualquier detalle a tu sistema.')}</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="final-cta">
+        <div>
+          <span class="section-kicker">{tt('Tu sistema empieza aquí')}</span>
+          <h2>{tt('Menos configurar.')}<br />{tt('Más construir.')}</h2>
+        </div>
+        <a class="primary-button" href="#generador">{tt('Crear mi NixOS')} <span aria-hidden="true">↑</span></a>
+      </section>
+    </main>
+
+    <footer>
+      <a class="brand" href={home}>nixosbuilder</a>
+      <p>{tt('Hecho para la comunidad NixOS. Tus datos nunca salen del navegador.')}</p>
+      <span>{tt('Generador determinista · Sin backend · Sin registro')}</span>
+      <p class="legal">{tt('NixOSBuilder es un proyecto independiente y no oficial. «NixOS» y su logotipo son marcas de la NixOS Foundation.')}</p>
+      <p class="legal">{tt('Software libre bajo licencia GPLv3 o posterior. Copyright © 2026 sincorchetes.')} <a href={`${base}LICENSE.txt`}>{tt('Licencia')}</a> · <a href={`${base}CREDITS.txt`}>{tt('Créditos')}</a></p>
+      <p class="legal">{tt('Esta herramienta se ha desarrollado con la ayuda de inteligencia artificial. El generador en sí es determinista y no usa IA al funcionar: revisa siempre los archivos antes de aplicarlos.')}</p>
+    </footer>
+
+    <script>
+      // Parallax: cada capa con data-parallax se desplaza a su propia velocidad al hacer scroll
+      // y reacciona levemente al ratón. Con «reducir movimiento» se atenúa mucho en lugar de quitarse.
+      const layers = [...document.querySelectorAll<HTMLElement>('[data-parallax]')];
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const pointer = { x: 0, y: 0 };
+      let ticking = false;
+      function update() {
+        ticking = false;
+        const strength = reduce.matches ? 0.3 : 1;
+        for (const el of layers) {
+          const host = el.parentElement!;
+          const rect = host.getBoundingClientRect();
+          if (rect.bottom < -300 || rect.top > innerHeight + 300) continue;
+          const speed = Number(el.dataset.parallax);
+          const offset = rect.top + rect.height / 2 - innerHeight / 2;
+          const y = -offset * speed * strength + pointer.y * speed * 40 * strength;
+          const x = pointer.x * speed * 40 * strength;
+          el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
+        }
+      }
+      const schedule = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
+      addEventListener('scroll', schedule, { passive: true });
+      addEventListener('resize', schedule);
+      addEventListener('pointermove', (event) => {
+        pointer.x = event.clientX / innerWidth - 0.5;
+        pointer.y = event.clientY / innerHeight - 0.5;
+        schedule();
+      }, { passive: true });
+      reduce.addEventListener('change', schedule);
+      update();
+    </script>
+  </body>
+</html>
