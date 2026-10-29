@@ -57,5 +57,5 @@ In the branch protection rules for `main`, require the **CI passed**, **CodeQL**
 
 ## License
 
-[GNU General Public License v3.0 or later](LICENSE). Copyright © 2026 sincorchetes. Credits and
+[GNU General Public License v3.0 or later](LICENSE). Copyright © 2026 [sincorchetes](https://sincorchetes.tech). Credits and
 third-party software in [CREDITS.md](CREDITS.md).

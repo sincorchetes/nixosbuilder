@@ -1,7 +1,7 @@
 # Credits and notices
 
 NixOSBuilder is free software, released under the **GNU General Public License v3.0 or later**
-(see [LICENSE](LICENSE)). Copyright © 2026 sincorchetes.
+(see [LICENSE](LICENSE)). Copyright © 2026 [sincorchetes](https://sincorchetes.tech).
 
 ## Built with the help of AI
 
