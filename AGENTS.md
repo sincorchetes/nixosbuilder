@@ -21,9 +21,12 @@ Siempre que se terminen de implementar cambios en el proyecto, seguir rigurosame
    - Si cambia la salida generada **a propósito**, aceptar las instantáneas con `bun test --update-snapshots` y revisar la diferencia.
 4. **Commit**:
    - Crear el commit con mensaje convencional (`feat:`, `fix:`, `perf:`, `ci:`, `docs:`, etc.).
+   - Si Claude ha colaborado en el cambio, el mensaje termina con la atribución (línea en blanco antes):
+     `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`
 5. **Push y pull request**:
    - Subir la rama: `git push -u origin <rama>`.
-   - Abrir el PR hacia `main` (`gh pr create`) y esperar a que pasen los checks requeridos (`CI correcto`, `CodeQL`, `Secret scan`).
+   - La descripción del PR termina con `🤖 Generated with [Claude Code](https://claude.com/claude-code)` si Claude ha colaborado.
+   - Abrir el PR hacia `main` (`gh pr create`) y esperar a que pasen los checks requeridos (`CI passed`, `CodeQL`, `Secret scan`).
    - Fusionar con *squash* y borrar la rama. Al fusionar, `deploy.yml` publica en GitHub Pages.
 6. **Tag versión n+** (solo cuando haya que marcar una versión):
    - Actualizar `main` y obtener la última versión (`git tag -l "v*" --sort=-v:refname | head -n 1`).

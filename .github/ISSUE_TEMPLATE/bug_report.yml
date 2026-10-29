@@ -1,25 +1,25 @@
-name: Error
-description: Algo no funciona o la configuración generada no evalúa
+name: Bug
+description: Something does not work, or the generated configuration does not evaluate
 labels: [bug]
 body:
   - type: textarea
-    id: que
+    id: what
     attributes:
-      label: Qué ha pasado
-      description: Qué esperabas y qué ocurrió. Si es un error de Nix, pega el mensaje completo.
+      label: What happened
+      description: What you expected and what happened. If it is a Nix error, paste the whole message.
     validations:
       required: true
   - type: input
-    id: canal
+    id: channel
     attributes:
-      label: Canal de NixOS
+      label: NixOS channel
       placeholder: 25.11 / 26.05 / unstable
   - type: textarea
-    id: pasos
+    id: options
     attributes:
-      label: Opciones elegidas
-      description: Perfil, escritorio, disco, Secure Boot… o el .zip generado (sin datos personales).
+      label: Options you chose
+      description: Profile, desktop, disk, Secure Boot… or the generated .zip (without personal data).
   - type: input
-    id: navegador
+    id: browser
     attributes:
-      label: Navegador y sistema
+      label: Browser and system

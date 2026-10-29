@@ -1,15 +1,15 @@
-name: Propuesta
-description: Una opción, perfil, módulo o mejora nueva
+name: Feature request
+description: A new option, profile, module or improvement
 labels: [enhancement]
 body:
   - type: textarea
-    id: que
+    id: what
     attributes:
-      label: Qué te gustaría poder hacer
+      label: What would you like to be able to do
     validations:
       required: true
   - type: textarea
     id: nix
     attributes:
-      label: Cómo se configura en NixOS (si lo sabes)
-      description: Opciones, módulos o paquetes de nixpkgs implicados.
+      label: How it is configured in NixOS (if you know)
+      description: Options, modules or nixpkgs packages involved.

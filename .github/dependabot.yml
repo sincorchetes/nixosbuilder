@@ -12,5 +12,5 @@ updates:
     schedule:
       interval: weekly
     groups:
-      dependencias:
+      dependencies:
         update-types: [minor, patch]

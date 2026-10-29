@@ -7,6 +7,8 @@ interface Props { lang: Lang }
 const { lang } = Astro.props;
 const tt = (text: string) => translate(lang, text);
 const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+// hreflang y canonical exigen URL absoluta: se usa `site` (en local, sin `site`, queda relativa)
+const absolute = (path: string) => (Astro.site ? new URL(path, Astro.site).href : path);
 const home = lang === 'en' ? `${base}en/` : base;
 const other = lang === 'en' ? { href: base, label: 'ES', name: 'Español' } : { href: `${base}en/`, label: 'EN', name: 'English' };
 ---
@@ -18,8 +20,10 @@ const other = lang === 'en' ? { href: base, label: 'ES', name: 'Español' } : { 
     <meta name="viewport" content="width=device-width" />
     <meta name="theme-color" content="#f4f7fc" />
     <meta name="description" content={tt('Genera una configuración declarativa de NixOS con flakes, Home Manager y disko. Gratis, sin registro y sin backend. Herramienta no oficial.')} />
-    <link rel="alternate" hreflang="es" href={base} />
-    <link rel="alternate" hreflang="en" href={`${base}en/`} />
+    <link rel="canonical" href={absolute(home)} />
+    <link rel="alternate" hreflang="es" href={absolute(base)} />
+    <link rel="alternate" hreflang="en" href={absolute(`${base}en/`)} />
+    <link rel="alternate" hreflang="x-default" href={absolute(base)} />
     <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
     <title>{tt('NixOSBuilder — Tu NixOS, a tu manera')}</title>
   </head>

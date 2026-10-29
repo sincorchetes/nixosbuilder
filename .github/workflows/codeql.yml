@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   analyze:
-    name: Análisis de seguridad
+    name: CodeQL
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
