@@ -32,11 +32,7 @@ const other = lang === 'en' ? { href: base, label: 'ES', name: 'Español' } : { 
   <body>
     <header class="site-header">
       <a class="brand" href={home} aria-label={tt('NixOSBuilder, inicio')}>
-        <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true">
-          <path d="M18 2 32 10v16L18 34 4 26V10Z" fill="currentColor" opacity=".12" />
-          <path d="m11 24 4-13 10 14 1-13M9 17l14-4-8 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-        <span>nixosbuilder</span>
+        <span>nixos<em>builder</em></span>
       </a>
       <nav aria-label={tt('Navegación principal')}>
         <a href="#generador">{tt('Generador')}</a>
@@ -126,7 +122,7 @@ const other = lang === 'en' ? { href: base, label: 'ES', name: 'Español' } : { 
     </main>
 
     <footer>
-      <a class="brand" href={home}>nixosbuilder</a>
+      <a class="brand" href={home}><span>nixos<em>builder</em></span></a>
       <p>{tt('Hecho para la comunidad NixOS. Tus datos nunca salen del navegador.')}</p>
       <span>{tt('Generador determinista · Sin backend · Sin registro')}</span>
       <p class="legal">{tt('NixOSBuilder es un proyecto independiente y no oficial. «NixOS» y su logotipo son marcas de la NixOS Foundation.')}</p>

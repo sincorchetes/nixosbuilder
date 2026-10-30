@@ -53,7 +53,7 @@ h1, h2, h3, h4, .brand { font-family: Outfit, 'Outfit Variable', Inter, system-u
 }
 
 .brand { display: inline-flex; align-items: center; gap: 9px; font-weight: 800; font-size: 20px; letter-spacing: -.3px; }
-.brand-mark { width: 32px; height: 32px; }
+.brand em { font-style: normal; color: var(--accent-strong); }
 .site-header nav { display: flex; gap: 32px; color: var(--muted); font-size: 14px; font-weight: 600; }
 .site-header nav a:hover { color: var(--ink); }
 .header-cta { display: flex; align-items: center; gap: 16px; padding: 11px 16px; border: 1px solid var(--line); border-radius: 10px; font-size: 13px; font-weight: 700; background: var(--glass); }
