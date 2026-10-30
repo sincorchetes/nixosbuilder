@@ -33,7 +33,7 @@
   <label>{t('hardware-configuration.nix')}
     <textarea rows="6" bind:value={config.hardwareConfiguration} placeholder={t('Pega aquí la salida de nixos-generate-config')}></textarea>
   </label>
-  <p class="field-note">{t('Sin esquema de particiones se usará el sistema que ya tienes: pega aquí tu hardware-configuration.nix (obligatorio).')}</p>
+  <p class="field-note">{t('Escoge una opción: marca el esquema personalizado o pega aquí tu hardware-configuration.nix.')}</p>
   {/if}
   {#if technical && config.disko}
     <label>{t('Dispositivo')}<input bind:value={config.diskDevice} placeholder={t('/dev/nvme0n1')} /></label>
@@ -59,7 +59,7 @@
       <input type="checkbox" bind:checked={config.encryption} />
       {t('Cifrar')} {config.diskScheme === 'zfs' ? t('(cifrado nativo de ZFS)') : '(LUKS)'}
     </label>
-  {:else}
+  {:else if technical}
     <p class="field-note">{t('Sin disko usarás las particiones que ya tengas (hardware-configuration.nix).')}</p>
   {/if}
   {/if}

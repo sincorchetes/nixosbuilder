@@ -119,8 +119,16 @@ for (const [lang, path] of [
     if (i === 7) {
       // Sin esquema de particiones ni hardware-configuration.nix, el destino de instalación es un error.
       check(
-        await page.ev(`document.querySelectorAll('.wizard-steps button')[7].classList.contains('warn')`),
-        `[${lang}] the installation target is flagged until it is defined`,
+        await page.ev(`document.querySelector('.wizard-nav .primary-button').disabled`),
+        `[${lang}] "Next" is disabled until the installation target is defined`,
+      );
+      check(
+        await page.ev(`document.querySelectorAll('.wizard-steps button')[8].disabled`),
+        `[${lang}] later steps cannot be reached from the sidebar until it is defined`,
+      );
+      check(
+        await page.ev(`!document.querySelector('.wizard-steps button.warn')`),
+        `[${lang}] a step is not flagged as an error before the user has tried it`,
       );
       await page.ev(
         `(() => { const area = document.querySelector('.wizard textarea'); area.value = '{ ... }: { fileSystems."/" = { device = "/dev/sda1"; fsType = "ext4"; }; }'; area.dispatchEvent(new Event('input', { bubbles: true })); })()`,
@@ -135,6 +143,33 @@ for (const [lang, path] of [
     await page.ev(`document.querySelectorAll('.wizard-nav .primary-button')[0].textContent.includes('.zip')`),
     `[${lang}] the last step offers the download`,
   );
+  // Sin entorno gráfico se pide confirmación al salir del paso.
+  await page.ev(`document.querySelectorAll('.wizard-steps button')[5].click()`);
+  await sleep(300);
+  const setDesktop = (value: string) =>
+    page.ev(
+      `(() => { const select = document.querySelector('.wizard select'); select.value = '${value}'; select.dispatchEvent(new Event('change', { bubbles: true })); })()`,
+    );
+  await setDesktop('none');
+  await next(page);
+  check(await page.ev(`!!document.querySelector('dialog.confirm-dialog[open]')`), `[${lang}] choosing no desktop asks for confirmation`);
+  await page.ev(`document.querySelector('dialog.confirm-dialog .secondary-button').click()`);
+  await sleep(300);
+  check(
+    (await page.ev(`document.querySelector('.wizard-steps button.current .label').textContent.trim()`)) ===
+      (await page.ev(`document.querySelectorAll('.wizard-steps .label')[5].textContent.trim()`)),
+    `[${lang}] cancelling keeps the user on the desktop step`,
+  );
+  await next(page);
+  await page.ev(`document.querySelector('dialog.confirm-dialog .primary-button').click()`);
+  await sleep(300);
+  check(
+    (await page.ev(`document.querySelector('.wizard-steps button.current .label').textContent.trim()`)) ===
+      (await page.ev(`document.querySelectorAll('.wizard-steps .label')[6].textContent.trim()`)),
+    `[${lang}] confirming moves on to the next step`,
+  );
+  await page.ev(`document.querySelectorAll('.wizard-steps button')[11].click()`);
+  await sleep(300);
   check((await page.ev(`document.querySelectorAll('.wizard .spoke').length`)) >= 10, `[${lang}] the summary shows one card per section`);
   check((await page.ev(`document.querySelectorAll('.tabs button').length`)) >= 3, `[${lang}] the generated files are listed`);
   check(

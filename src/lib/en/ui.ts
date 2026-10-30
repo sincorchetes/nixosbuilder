@@ -120,8 +120,12 @@ export const ui: Record<string, string> = {
     'partition.sh (partitions, formats and mounts on /mnt) and filesystems.nix (fileSystems, swap and LUKS) are generated. You can keep existing partitions.',
   'Sin definir': 'Not defined',
   'Falta completar:': 'Still to complete:',
-  'Sin esquema de particiones se usará el sistema que ya tienes: pega aquí tu hardware-configuration.nix (obligatorio).':
-    'Without a partition layout, your existing system is used: paste your hardware-configuration.nix here (required).',
+  'Escoge una opción: marca el esquema personalizado o pega aquí tu hardware-configuration.nix.':
+    'Choose an option: tick the custom layout or paste your hardware-configuration.nix here.',
+  '¿Seguro que quieres instalar el sistema sin entorno gráfico? Solo tendrás la línea de comandos.':
+    'Are you sure you want to install without a graphical environment? You will only have the command line.',
+  Cancelar: 'Cancel',
+  Continuar: 'Continue',
   'Para usar disko, cambia a la vista técnica.': 'To use disko, switch to the technical view.',
   'Usa el modelo tradicional de Nix (canales), con Home Manager como módulo: un solo nixos-rebuild aplica sistema y usuario, sin cerrar sesión.':
     'It uses the traditional Nix model (channels), with Home Manager as a module: a single nixos-rebuild applies system and user, with no need to log out.',

@@ -342,6 +342,10 @@ footer p { margin: 0; }
 .wizard-steps button:disabled { opacity: .45; cursor: not-allowed; }
 .wizard-steps button:disabled:hover { background: transparent; color: var(--muted); }
 .wizard-nav .progress.pending { color: var(--warn); }
+.confirm-dialog { width: min(440px, calc(100% - 24px)); }
+.confirm-dialog .sw-card { grid-template-rows: auto auto; }
+.confirm-dialog .sw-card p { margin: 0; line-height: 1.6; }
+.confirm-dialog .sw-card footer { justify-content: flex-end; }
 .wizard-main { display: grid; grid-template-rows: 1fr auto; min-width: 0; }
 .wizard-stage { padding: 28px 32px; overflow: hidden; min-width: 0; }
 .slide { display: grid; gap: 20px; min-width: 0; }
