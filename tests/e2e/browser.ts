@@ -1,7 +1,7 @@
 // Prueba de extremo a extremo con Chrome/Chromium headless (protocolo CDP).
 // Uso: bun tests/e2e/browser.ts [url]   (por defecto http://localhost:4321/)
 // Requiere un servidor sirviendo la web (`bun run dev` o `bun run preview`) y `google-chrome` o `chromium` en el PATH.
-import { mkdtempSync } from 'node:fs';
+import { mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -13,25 +13,37 @@ if (!chrome) {
   process.exit(2);
 }
 
+// El Chrome del sistema (p. ej. el de los runners de GitHub) no debe cargar las librerías de Nix del shell de devenv.
+const { LD_LIBRARY_PATH: _libs, LD_PRELOAD: _preload, ...cleanEnv } = process.env;
+const workDir = mkdtempSync(join(tmpdir(), 'e2e-'));
+const chromeLog = join(workDir, 'chrome.log');
 const browser = Bun.spawn(
   [
     chrome,
     '--headless=new',
     `--remote-debugging-port=${port}`,
-    `--user-data-dir=${mkdtempSync(join(tmpdir(), 'e2e-'))}`,
+    `--user-data-dir=${join(workDir, 'profile')}`,
     '--no-sandbox',
+    '--disable-gpu',
+    '--disable-dev-shm-usage',
     'about:blank',
   ],
-  { stdout: 'ignore', stderr: 'ignore' },
+  { stdout: Bun.file(chromeLog), stderr: Bun.file(chromeLog), env: cleanEnv },
 );
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-for (let i = 0; i < 50; i++) {
+let ready = false;
+for (let i = 0; i < 100 && !ready; i++) {
   try {
-    await fetch(`http://localhost:${port}/json/version`);
-    break;
+    ready = (await fetch(`http://localhost:${port}/json/version`)).ok;
   } catch {
     await sleep(200);
   }
+}
+if (!ready) {
+  console.error(`Chrome (${chrome}) did not open the debugging port ${port}; exit code: ${browser.exitCode}`);
+  console.error(readFileSync(chromeLog, 'utf8').slice(-2000));
+  browser.kill();
+  process.exit(2);
 }
 
 const failures: string[] = [];
