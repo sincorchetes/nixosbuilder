@@ -209,8 +209,8 @@ describe('validation', () => {
     expect(errorsOf({ homeManager: true, hmModules: ['no-valido'] }).join()).toMatch(/Módulos de Home Manager no válidos/);
   });
 
-  test('Secure Boot requires flakes and systemd-boot', () => {
-    expect(errorsOf({ secureBoot: true, flakes: false }).join()).toMatch(/requiere activar flakes/);
+  test('Secure Boot works without flakes but needs systemd-boot', () => {
+    expect(errorsOf({ secureBoot: true, flakes: false }).join()).not.toMatch(/flakes/);
     expect(errorsOf({ secureBoot: true, bootloader: 'grub' }).join()).toMatch(/GRUB/);
   });
 
@@ -294,14 +294,19 @@ describe('final steps', () => {
     expect(nextSteps(makeConfig({ flakes: true })).some((step) => step.command?.includes('nix-channel'))).toBe(false);
   });
 
-  test('classicConfig removes flakes, disko and Secure Boot but keeps the rest', () => {
+  test('classicConfig removes flakes and disko but keeps the rest', () => {
     const classic = classicConfig(makeConfig({ flakes: true, disko: true, secureBoot: true, hostname: 'pc' }));
-    expect([classic.flakes, classic.disko, classic.secureBoot, classic.hostname]).toEqual([false, false, false, 'pc']);
+    expect([classic.flakes, classic.disko, classic.secureBoot, classic.hostname]).toEqual([false, false, true, 'pc']);
     const files = fileMap(classic);
     expect(files['flake.nix']).toBeUndefined();
     expect(files['disko.nix']).toBeUndefined();
     expect(files['configuration.nix']).toContain('<home-manager/nixos>');
-    expect(files['configuration.nix']).not.toContain('lanzaboote');
+    expect(files['configuration.nix']).toContain('lanzaboote.nixosModules.lanzaboote');
+    expect(files['configuration.nix']).toContain(
+      'builtins.fetchTarball "https://github.com/nix-community/lanzaboote/archive/v1.2.0.tar.gz"',
+    );
+    expect(fileMap(makeConfig({ flakes: false, secureBoot: false }))['configuration.nix']).not.toContain('lanzaboote');
+    expect(fileMap(makeConfig({ flakes: true, secureBoot: true }))['configuration.nix']).not.toContain('fetchTarball');
   });
 
   test('Secure Boot adds sbctl', () => expect(stepsText({ secureBoot: true })).toContain('sbctl create-keys'));

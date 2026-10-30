@@ -165,8 +165,8 @@ async function evaluateClassic(dir: string, channel: Channel): Promise<{ ok: boo
 
 async function runClassic(channel: Channel, base: string) {
   const results: Array<{ name: string; ok: boolean; log: string }> = [];
-  // Los casos de disko y Secure Boot solo existen en la vista técnica.
-  for (const { name, patch } of cases(channel).filter(({ patch }) => !patch.disko && !patch.secureBoot)) {
+  // Los casos de disko solo existen en la vista técnica.
+  for (const { name, patch } of cases(channel).filter(({ patch }) => !patch.disko)) {
     const config = classicConfig(withTarget({ ...structuredClone(defaultConfig), channel, ...patch }));
     const errors = validateConfig(config);
     if (errors.length) {

@@ -61,7 +61,7 @@ describe('wizard steps', () => {
       'El nombre del equipo solo puede contener letras, números y guiones.',
       'La zona horaria no es válida (p. ej. Europe/Madrid).',
       'El disco debe ser una ruta de dispositivo válida, como /dev/sda o /dev/nvme0n1.',
-      'Secure Boot con lanzaboote requiere activar flakes.',
+      'Secure Boot con lanzaboote sustituye a systemd-boot; no es compatible con GRUB.',
     ]);
     expect(issues.network).toMatch(/equipo/);
     expect(issues.time).toMatch(/zona horaria/);

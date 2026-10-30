@@ -32,7 +32,6 @@ export const messages: Record<string, string> = {
   'La zona horaria no es válida (p. ej. Europe/Madrid).': 'The time zone is not valid (e.g. Europe/Madrid).',
   'El disco debe ser una ruta de dispositivo válida, como /dev/sda o /dev/nvme0n1.':
     'The disk must be a valid device path, such as /dev/sda or /dev/nvme0n1.',
-  'Secure Boot con lanzaboote requiere activar flakes.': 'Secure Boot with lanzaboote requires enabling flakes.',
   'Secure Boot con lanzaboote sustituye a systemd-boot; no es compatible con GRUB.':
     'Secure Boot with lanzaboote replaces systemd-boot; it is not compatible with GRUB.',
   'Con dual boot (multiboot) no uses disko: formatearía el disco entero y borraría el otro sistema. Particiona a mano con comandos (fdisk/parted) y monta las particiones antes de instalar.':

@@ -50,7 +50,6 @@ export function validateConfig(config: NixBuilderConfig): string[] {
     errors.push('El disco debe ser una ruta de dispositivo válida, como /dev/sda o /dev/nvme0n1.');
   }
   if (config.secureBoot) {
-    if (!config.flakes) errors.push('Secure Boot con lanzaboote requiere activar flakes.');
     if (config.bootloader !== 'systemd-boot')
       errors.push('Secure Boot con lanzaboote sustituye a systemd-boot; no es compatible con GRUB.');
   }

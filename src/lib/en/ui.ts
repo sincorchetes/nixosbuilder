@@ -123,7 +123,6 @@ export const ui: Record<string, string> = {
   'Sin esquema de particiones se usará el sistema que ya tienes: pega aquí tu hardware-configuration.nix (obligatorio).':
     'Without a partition layout, your existing system is used: paste your hardware-configuration.nix here (required).',
   'Para usar disko, cambia a la vista técnica.': 'To use disko, switch to the technical view.',
-  'Secure Boot (lanzaboote) y los flakes están en la vista técnica.': 'Secure Boot (lanzaboote) and flakes are in the technical view.',
   'Usa el modelo tradicional de Nix (canales), con Home Manager como módulo: un solo nixos-rebuild aplica sistema y usuario, sin cerrar sesión.':
     'It uses the traditional Nix model (channels), with Home Manager as a module: a single nixos-rebuild applies system and user, with no need to log out.',
   'Particionar el disco con disko': 'Partition the disk with disko',
@@ -142,7 +141,6 @@ export const ui: Record<string, string> = {
   Arranque: 'Boot',
   'Arranque UEFI.': 'UEFI boot.',
   'Gestor de arranque': 'Bootloader',
-  'Secure Boot requiere flakes (actívalos en la vista técnica).': 'Secure Boot requires flakes (enable them in the technical view).',
   'Deberás crear y enrolar las claves con sbctl; te indicamos los comandos en los pasos finales.':
     'You will need to create and enroll the keys with sbctl; the commands are shown in the final steps.',
   'Multiboot (dual boot con otro sistema)': 'Multiboot (dual boot with another system)',

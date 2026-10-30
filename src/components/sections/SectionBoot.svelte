@@ -16,18 +16,9 @@
       </select>
     </label>
   {/if}
-  {#if technical}
-    <label class="check">
-      <input type="checkbox" bind:checked={config.secureBoot} disabled={!config.flakes} />
-      {t('Secure Boot (lanzaboote)')}
-    </label>
-    {#if !config.flakes}
-      <p class="field-note">{t('Secure Boot requiere flakes (actívalos en la vista técnica).')}</p>
-    {:else if config.secureBoot}
-      <p class="field-note">{t('Deberás crear y enrolar las claves con sbctl; te indicamos los comandos en los pasos finales.')}</p>
-    {/if}
-  {:else}
-    <p class="field-note">{t('Secure Boot (lanzaboote) y los flakes están en la vista técnica.')}</p>
+  <label class="check"><input type="checkbox" bind:checked={config.secureBoot} /> {t('Secure Boot (lanzaboote)')}</label>
+  {#if config.secureBoot}
+    <p class="field-note">{t('Deberás crear y enrolar las claves con sbctl; te indicamos los comandos en los pasos finales.')}</p>
   {/if}
   <label class="check"><input type="checkbox" bind:checked={config.multiboot} /> {t('Multiboot (dual boot con otro sistema)')}</label>
 </fieldset>
