@@ -43,7 +43,7 @@ export function validateLayout(parts: Partition[], opts: { device: string; diskB
 
   if (!mounts.has('/')) errors.push('Falta una partición montada en / (raíz).');
   const boot = parts.find((part) => part.mountpoint === '/boot');
-  if (!boot) warnings.push('No hay partición en /boot: para arranque UEFI necesitas una ESP FAT32 montada en /boot.');
+  if (!boot) errors.push('Falta una partición en /boot: para arrancar con UEFI necesitas una ESP FAT32 montada en /boot.');
   else if (boot.fs !== 'vfat') warnings.push('/boot debería ser FAT32 (ESP) para arrancar con UEFI.');
 
   const used = layoutBytes(parts, 0);

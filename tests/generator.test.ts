@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test } from 'bun:test';
 import {
+  classicConfig,
   generateFiles,
   getWarnings,
   isFirewallCustomized,
@@ -208,8 +209,8 @@ describe('validation', () => {
     expect(errorsOf({ homeManager: true, hmModules: ['no-valido'] }).join()).toMatch(/Módulos de Home Manager no válidos/);
   });
 
-  test('Secure Boot requires flakes and systemd-boot', () => {
-    expect(errorsOf({ secureBoot: true, flakes: false }).join()).toMatch(/requiere activar flakes/);
+  test('Secure Boot works without flakes but needs systemd-boot', () => {
+    expect(errorsOf({ secureBoot: true, flakes: false }).join()).not.toMatch(/flakes/);
     expect(errorsOf({ secureBoot: true, bootloader: 'grub' }).join()).toMatch(/GRUB/);
   });
 
@@ -239,6 +240,12 @@ describe('warnings', () => {
   });
   test('disko erases the disk', () => expect(warningsOf({ disko: true })).toMatch(/borrará/));
   test('ZFS', () => expect(warningsOf({ disko: true, diskScheme: 'zfs' })).toMatch(/OpenZFS/));
+  const targetErrors = (patch: object) => validateConfig(makeConfig(patch as never));
+  test('without disko, a layout or a hardware-configuration there is no installation target', () => {
+    expect(targetErrors({ hardwareConfiguration: '', disko: false, customLayout: false }).join()).toMatch(/destino de instalación/);
+    expect(targetErrors({ hardwareConfiguration: '', disko: true }).join()).not.toMatch(/destino de instalación/);
+    expect(targetErrors({ hardwareConfiguration: '{ ... }: { }' }).join()).not.toMatch(/destino de instalación/);
+  });
   test('empty hardware-configuration', () => expect(warningsOf({ hardwareConfiguration: '' })).toMatch(/hardware-configuration/));
 });
 
@@ -271,6 +278,35 @@ describe('final steps', () => {
 
   test('without flakes it does not use --flake', () => {
     expect(stepsText({ flakes: false, disko: true })).not.toContain('--flake /mnt');
+  });
+
+  test('the traditional model adds the Home Manager channel before applying', () => {
+    const steps = nextSteps(makeConfig({ flakes: false, channel: '25.11' }));
+    const channel = steps.findIndex((step) => step.command?.includes('nix-channel --add'));
+    expect(steps[channel].command).toContain('home-manager/archive/release-25.11.tar.gz home-manager');
+    expect(channel).toBeLessThan(steps.length - 1);
+    expect(
+      nextSteps(makeConfig({ flakes: false, channel: 'unstable' }))
+        .map((step) => step.command)
+        .join(),
+    ).toContain('archive/master.tar.gz');
+    expect(nextSteps(makeConfig({ flakes: false, homeManager: false })).some((step) => step.command?.includes('nix-channel'))).toBe(false);
+    expect(nextSteps(makeConfig({ flakes: true })).some((step) => step.command?.includes('nix-channel'))).toBe(false);
+  });
+
+  test('classicConfig removes flakes and disko but keeps the rest', () => {
+    const classic = classicConfig(makeConfig({ flakes: true, disko: true, secureBoot: true, hostname: 'pc' }));
+    expect([classic.flakes, classic.disko, classic.secureBoot, classic.hostname]).toEqual([false, false, true, 'pc']);
+    const files = fileMap(classic);
+    expect(files['flake.nix']).toBeUndefined();
+    expect(files['disko.nix']).toBeUndefined();
+    expect(files['configuration.nix']).toContain('<home-manager/nixos>');
+    expect(files['configuration.nix']).toContain('lanzaboote.nixosModules.lanzaboote');
+    expect(files['configuration.nix']).toContain(
+      'builtins.fetchTarball "https://github.com/nix-community/lanzaboote/archive/v1.2.0.tar.gz"',
+    );
+    expect(fileMap(makeConfig({ flakes: false, secureBoot: false }))['configuration.nix']).not.toContain('lanzaboote');
+    expect(fileMap(makeConfig({ flakes: true, secureBoot: true }))['configuration.nix']).not.toContain('fetchTarball');
   });
 
   test('Secure Boot adds sbctl', () => expect(stepsText({ secureBoot: true })).toContain('sbctl create-keys'));

@@ -27,7 +27,7 @@ function diskSummary(config: NixBuilderConfig) {
   if (config.disko) {
     return `${schemeLabels[config.diskScheme]}${config.encryption ? ` ${t('cifrado')}` : ''} ${t('en')} ${config.diskDevice}`;
   }
-  return t('Particiones existentes (sin disko)');
+  return config.hardwareConfiguration.trim() ? t('Particiones existentes (sin disko)') : t('Sin definir');
 }
 
 export function buildSummaries(config: NixBuilderConfig, profileLabel: string, sessions: Session[]): Record<string, string> {

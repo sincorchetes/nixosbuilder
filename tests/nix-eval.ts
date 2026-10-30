@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { newPartition } from '../src/lib/disk';
-import { type Channel, defaultConfig, generateFiles, type NixBuilderConfig, validateConfig } from '../src/lib/generator';
+import { type Channel, classicConfig, defaultConfig, generateFiles, type NixBuilderConfig, validateConfig } from '../src/lib/generator';
 import { isItemAvailable, itemsFor, type Profile } from '../src/lib/software';
 
 const root = join(import.meta.dir, '..');
@@ -14,6 +14,10 @@ const EMPTY_HW = '{ ... }:\n{\n}\n';
 
 const status: Record<string, string[]> = JSON.parse(readFileSync(join(root, 'public/software-status.json'), 'utf8'));
 const index = (channel: Channel) => JSON.parse(readFileSync(join(root, `public/packages/${channel}.json`), 'utf8'));
+
+/** Sin disko, esquema propio ni hardware-configuration.nix el generador pide definir el destino: se usa uno de prueba. */
+const withTarget = (config: NixBuilderConfig): NixBuilderConfig =>
+  config.disko || config.customLayout || config.hardwareConfiguration.trim() ? config : { ...config, hardwareConfiguration: STUB_FS };
 
 interface Case {
   name: string;
@@ -128,11 +132,60 @@ async function evaluate(dir: string): Promise<{ ok: boolean; log: string }> {
   };
 }
 
+/** Modelo tradicional (vista simple): <nixpkgs/nixos> con los canales de nixpkgs y Home Manager. */
+async function evaluateClassic(dir: string, channel: Channel): Promise<{ ok: boolean; log: string }> {
+  const nixpkgs = `https://github.com/NixOS/nixpkgs/archive/${channel === 'unstable' ? 'nixos-unstable' : `nixos-${channel}`}.tar.gz`;
+  const homeManager = `https://github.com/nix-community/home-manager/archive/${channel === 'unstable' ? 'master' : `release-${channel}`}.tar.gz`;
+  const proc = Bun.spawn(
+    [
+      'nix-instantiate',
+      '<nixpkgs/nixos>',
+      '-A',
+      'system',
+      '-I',
+      `nixpkgs=${nixpkgs}`,
+      '-I',
+      `home-manager=${homeManager}`,
+      '-I',
+      'nixos-config=./configuration.nix',
+    ],
+    { cwd: dir, stdout: 'pipe', stderr: 'pipe' },
+  );
+  const [out, err] = await Promise.all([new Response(proc.stdout).text(), new Response(proc.stderr).text()]);
+  await proc.exited;
+  return {
+    ok: out.includes('/nix/store'),
+    log: err
+      .split('\n')
+      .filter((line) => /error|undefined|does not exist|assertion/i.test(line))
+      .slice(0, 4)
+      .join('\n'),
+  };
+}
+
+async function runClassic(channel: Channel, base: string) {
+  const results: Array<{ name: string; ok: boolean; log: string }> = [];
+  // Los casos de disko solo existen en la vista técnica.
+  for (const { name, patch } of cases(channel).filter(({ patch }) => !patch.disko)) {
+    const config = classicConfig(withTarget({ ...structuredClone(defaultConfig), channel, ...patch }));
+    const errors = validateConfig(config);
+    if (errors.length) {
+      results.push({ name: `classic ${name}`, ok: false, log: `validation: ${errors.join(' ')}` });
+      continue;
+    }
+    const dir = join(base, `${channel}-classic-${name}`);
+    mkdirSync(join(dir, 'home'), { recursive: true });
+    for (const file of generateFiles(config)) writeFileSync(join(dir, file.path), file.content);
+    results.push({ name: `classic ${name}`, ...(await evaluateClassic(dir, channel)) });
+  }
+  return results;
+}
+
 async function runChannel(channel: Channel, base: string) {
   const results: Array<{ name: string; ok: boolean; log: string }> = [];
   let firstDir: string | undefined;
   for (const { name, patch } of cases(channel)) {
-    const config: NixBuilderConfig = { ...structuredClone(defaultConfig), channel, ...patch };
+    const config = withTarget({ ...structuredClone(defaultConfig), channel, ...patch });
     const errors = validateConfig(config);
     if (errors.length) {
       results.push({ name, ok: false, log: `validation: ${errors.join(' ')}` });
@@ -155,7 +208,9 @@ async function runChannel(channel: Channel, base: string) {
 }
 
 const base = mkdtempSync(join(tmpdir(), 'nixosbuilder-eval-'));
-const all = await Promise.all(channels.map(async (channel) => [channel, await runChannel(channel, base)] as const));
+const all = await Promise.all(
+  channels.map(async (channel) => [channel, [...(await runChannel(channel, base)), ...(await runClassic(channel, base))]] as const),
+);
 let failed = 0;
 for (const [channel, results] of all) {
   for (const result of results) {

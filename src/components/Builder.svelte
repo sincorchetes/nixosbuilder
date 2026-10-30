@@ -15,6 +15,7 @@
   import { issuesByStep } from '../lib/wizardSteps';
   import {
     availableSessions,
+    classicConfig,
     defaultConfig,
     generateFiles,
     nextSteps,
@@ -49,6 +50,9 @@
     if (config.secureBoot && config.bootloader !== 'systemd-boot') config.bootloader = 'systemd-boot';
   });
 
+  // La vista simple genera el modelo tradicional (sin flakes ni disko); la técnica, lo que se haya elegido.
+  const effective = $derived(view === 'technical' ? config : classicConfig(config));
+
   const unavailable = $derived(new Set(softwareStatus[config.channel] ?? []));
   const unavailableChosen = $derived(
     config.selected
@@ -64,12 +68,12 @@
     modules: hm.diagnostics,
     hmIndexLoaded: !!hm.index,
   });
-  const errors = $derived(buildErrors(config, problemContext));
-  const warnings = $derived(buildWarnings(config, problemContext));
-  const files = $derived(errors.length === 0 ? generateFiles(config) : []);
-  const steps = $derived(nextSteps(config));
+  const errors = $derived(buildErrors(effective, problemContext));
+  const warnings = $derived(buildWarnings(effective, problemContext));
+  const files = $derived(errors.length === 0 ? generateFiles(effective) : []);
+  const steps = $derived(nextSteps(effective));
   const issues = $derived(issuesByStep(errors));
-  const summaries = $derived(buildSummaries(config, profiles.find((profile) => profile.id === config.profile)!.label, sessions));
+  const summaries = $derived(buildSummaries(effective, profiles.find((profile) => profile.id === config.profile)!.label, sessions));
 
   // Al cambiar de vista el contenido se reemplaza y la página se acorta un instante: el navegador
   // te lleva arriba. Se compensa para que las pestañas queden donde estaban en pantalla.
@@ -91,7 +95,7 @@
 </script>
 
 {#snippet output()}
-  <OutputPanel {config} {errors} {warnings} {files} {steps} />
+  <OutputPanel config={effective} {errors} {warnings} {files} {steps} />
 {/snippet}
 
 {#if view === 'technical'}

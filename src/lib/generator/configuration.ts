@@ -3,7 +3,7 @@ import { t } from '../i18n';
 import { type Keyboard, keyboardById } from '../locale';
 import { generateDesktop } from './desktop';
 import { generateFirewall } from './firewall';
-import { hostId, nixList, nixString, packageNames, stateVersion, usesZfs } from './nix';
+import { hostId, lanzabooteRef, nixList, nixString, packageNames, stateVersion, usesZfs } from './nix';
 import { profileAppsFile, selectedSoftware } from './profileApps';
 import type { NixBuilderConfig } from './types';
 
@@ -14,12 +14,22 @@ export const generateConfiguration = (config: NixBuilderConfig) => {
   if (selectedSoftware(config).apps.length > 0) imports.push(`./${profileAppsFile}`);
   if (!config.flakes && config.homeManager) imports.push('<home-manager/nixos>');
   if (!config.flakes && config.disko) imports.push('<disko/module.nix>');
+  // Sin flakes, lanzaboote se importa desde su default.nix (descarga el tarball de la versión indicada).
+  const classicLanzaboote = config.secureBoot && !config.flakes;
+  if (classicLanzaboote) imports.push('lanzaboote.nixosModules.lanzaboote');
 
   const args = ['config', ...(config.secureBoot ? ['lib'] : []), 'pkgs', '...'];
   const lines = [
     t('# ⚠ Antes de reiniciar: asigna una contraseña a root y a tu usuario'),
     `#   (passwd root · passwd ${config.username}) ${t('o no podrás iniciar sesión.')}`,
     `{ ${args.join(', ')} }:`,
+    ...(classicLanzaboote
+      ? [
+          'let',
+          `  lanzaboote = import (builtins.fetchTarball ${nixString(`https://github.com/nix-community/lanzaboote/archive/${lanzabooteRef}.tar.gz`)}) { };`,
+          'in',
+        ]
+      : []),
     '{',
     '  imports = [',
     ...imports.map((path) => `    ${path}`),

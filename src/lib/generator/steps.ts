@@ -1,6 +1,10 @@
 // Pasos finales y recordatorios.
 import type { NextStep, NixBuilderConfig } from './types';
 
+/** URL del canal de Home Manager que corresponde al canal de NixOS elegido. */
+export const homeManagerChannelUrl = (config: NixBuilderConfig) =>
+  `https://github.com/nix-community/home-manager/archive/${config.channel === 'unstable' ? 'master' : `release-${config.channel}`}.tar.gz`;
+
 export function nextSteps(config: NixBuilderConfig): NextStep[] {
   const steps: NextStep[] = [];
   const installing = config.disko || config.customLayout;
@@ -21,6 +25,12 @@ export function nextSteps(config: NixBuilderConfig): NextStep[] {
       command: config.flakes
         ? `sudo nix run github:nix-community/disko/latest -- --mode destroy,format,mount --flake .#${config.hostname}`
         : 'sudo nix run github:nix-community/disko/latest -- --mode destroy,format,mount ./disko.nix',
+    });
+  }
+  if (!config.flakes && config.homeManager) {
+    steps.push({
+      text: 'Añade el canal de Home Manager (se aplica junto con el sistema en cada nixos-rebuild, sin cerrar sesión):',
+      command: `sudo nix-channel --add ${homeManagerChannelUrl(config)} home-manager && sudo nix-channel --update`,
     });
   }
   if (installing) {

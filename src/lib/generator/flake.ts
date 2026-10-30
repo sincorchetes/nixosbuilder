@@ -1,5 +1,5 @@
 // flake.nix.
-import { nixString } from './nix';
+import { lanzabooteRef, nixString } from './nix';
 import type { NixBuilderConfig } from './types';
 
 export const generateFlake = (config: NixBuilderConfig) => {
@@ -27,7 +27,7 @@ export const generateFlake = (config: NixBuilderConfig) => {
   if (config.secureBoot) {
     lines.push(
       '    lanzaboote = {',
-      '      url = "github:nix-community/lanzaboote/v1.2.0";',
+      `      url = ${nixString(`github:nix-community/lanzaboote/${lanzabooteRef}`)};`,
       '      inputs.nixpkgs.follows = "nixpkgs";',
       '    };',
     );

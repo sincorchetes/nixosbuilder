@@ -50,11 +50,21 @@ const issuePatterns: Record<string, RegExp> = {
   time: /zona horaria/i,
   software: /paquete|nixpkgs|módulo|Home Manager/i,
   desktop: /escritorio/i,
-  disk: /disco|dispositivo/i,
+  disk: /disco|dispositivo|partici|punto de montaje|tamaño|sistema de archivos|cifrad|hardware-configuration/i,
   boot: /Secure Boot|lanzaboote/i,
   network: /equipo|firewall|puertos/i,
   user: /usuario|visible/i,
 };
+
+/** Paso más lejano al que se puede ir: el primero sin visitar (los pasos se recorren en orden, sin saltarse ninguno). */
+export const furthestReachable = (visited: boolean[]) => {
+  const first = wizardSteps.findIndex((_, i) => !visited[i]);
+  return first < 0 ? wizardSteps.length - 1 : first;
+};
+
+/** Pasos previos al resumen sin revisar o con errores: hasta que no haya ninguno no se puede ver el resumen. */
+export const pendingSteps = (visited: boolean[], current: number, issues: Record<string, string | undefined>): Step[] =>
+  wizardSteps.slice(0, -1).filter((step, i) => !(visited[i] || i === current) || !!issues[step.id]);
 
 export const issuesByStep = (errors: string[]): Record<string, string | undefined> =>
   Object.fromEntries(Object.entries(issuePatterns).map(([id, pattern]) => [id, errors.find((error) => pattern.test(error))]));

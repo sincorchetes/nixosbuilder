@@ -32,7 +32,6 @@ export const messages: Record<string, string> = {
   'La zona horaria no es válida (p. ej. Europe/Madrid).': 'The time zone is not valid (e.g. Europe/Madrid).',
   'El disco debe ser una ruta de dispositivo válida, como /dev/sda o /dev/nvme0n1.':
     'The disk must be a valid device path, such as /dev/sda or /dev/nvme0n1.',
-  'Secure Boot con lanzaboote requiere activar flakes.': 'Secure Boot with lanzaboote requires enabling flakes.',
   'Secure Boot con lanzaboote sustituye a systemd-boot; no es compatible con GRUB.':
     'Secure Boot with lanzaboote replaces systemd-boot; it is not compatible with GRUB.',
   'Con dual boot (multiboot) no uses disko: formatearía el disco entero y borraría el otro sistema. Particiona a mano con comandos (fdisk/parted) y monta las particiones antes de instalar.':
@@ -52,8 +51,7 @@ export const messages: Record<string, string> = {
     'Encryption will ask for the password interactively when formatting with disko and on every boot.',
   'ZFS: comprueba que el kernel por defecto del canal elegido sea compatible con OpenZFS.':
     'ZFS: check that the default kernel of the chosen channel is compatible with OpenZFS.',
-  'Sin flakes tendrás que añadir los canales de home-manager y/o disko manualmente.':
-    'Without flakes you will need to add the home-manager and/or disko channels manually.',
+  'Sin flakes tendrás que añadir el canal de disko manualmente.': 'Without flakes you will need to add the disko channel manually.',
   'Hyprland funciona mejor con Home Manager para gestionar su configuración.':
     'Hyprland works best with Home Manager to manage its configuration.',
   'Plasma 6.8 elimina la sesión X11: con canales recientes (unstable) puede no estar disponible.':
@@ -69,8 +67,10 @@ export const messages: Record<string, string> = {
   /* disk.ts */
   'El esquema de particiones está vacío.': 'The partition layout is empty.',
   'Falta una partición montada en / (raíz).': 'A partition mounted on / (root) is missing.',
-  'No hay partición en /boot: para arranque UEFI necesitas una ESP FAT32 montada en /boot.':
-    'There is no partition on /boot: UEFI boot needs a FAT32 ESP mounted on /boot.',
+  'Falta una partición en /boot: para arrancar con UEFI necesitas una ESP FAT32 montada en /boot.':
+    'A partition on /boot is missing: booting with UEFI needs a FAT32 ESP mounted on /boot.',
+  'Falta definir el destino de instalación: diseña un esquema de particiones del disco o pega tu hardware-configuration.nix.':
+    'The installation target is not defined: design a disk partition layout or paste your hardware-configuration.nix.',
   '/boot debería ser FAT32 (ESP) para arrancar con UEFI.': '/boot should be FAT32 (ESP) to boot with UEFI.',
   'disko no puede conservar particiones existentes (recrea el disco entero). Quita las particiones existentes o desactiva disko para generar un script en su lugar.':
     'disko cannot keep existing partitions (it recreates the whole disk). Remove the existing partitions or disable disko to generate a script instead.',
@@ -89,6 +89,8 @@ export const messages: Record<string, string> = {
   'Secure Boot: antes de activarlo, crea las claves, aplica la configuración y enrólalas (con el firmware en modo setup):':
     'Secure Boot: before enabling it, create the keys, apply the configuration and enroll them (with the firmware in setup mode):',
   'Reinicia y retira el medio de instalación:': 'Reboot and remove the installation media:',
+  'Añade el canal de Home Manager (se aplica junto con el sistema en cada nixos-rebuild, sin cerrar sesión):':
+    'Add the Home Manager channel (it is applied together with the system on every nixos-rebuild, with no need to log out):',
   'Valida sin aplicar cambios:': 'Validate without applying changes:',
   'Aplica la configuración:': 'Apply the configuration:',
 };

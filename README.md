@@ -14,9 +14,14 @@ Everything happens in the browser: no backend, no accounts, no data sent anywher
 ## What's included
 
 - A step-by-step wizard (installer style) and a technical view, in Spanish and English (`/` and `/en/`).
+  - The **wizard** uses the traditional Nix model (channels + `configuration.nix`), with Home Manager as a NixOS
+    module from its channel, so a single `nixos-rebuild switch` applies the system and the user without logging
+    out. It will not reach the summary until every step is reviewed and valid (including the installation target).
+  - The **technical view** adds flakes and disko. Secure Boot (lanzaboote) works in both: with flakes it is a flake
+    input; without them it is imported from lanzaboote's `default.nix`.
 - Profiles (server, end user, developer, DevOps, gamer) with catalogs and search across all of nixpkgs.
 - Desktops, GPU, audio, an interactive firewall, Secure Boot (lanzaboote), ZFS/LVM/LUKS, TRIM.
-- A partition designer: paste the output of `lsblk`, edit the layout, and generate `disko.nix` or a script.
+- A partition designer: paste the output of `lsblk`, edit the layout, and generate a partition script (wizard) or `disko.nix` (technical view).
 - Home Manager with one file per module, validated against the real options of each release.
 - NixOS channels 25.11, 26.05 and unstable.
 

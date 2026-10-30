@@ -24,6 +24,9 @@ export const packageNames = (value: string) => [
   ),
 ];
 
+/** Versión de lanzaboote (Secure Boot): como entrada del flake o descargada como tarball sin flakes. */
+export const lanzabooteRef = 'v1.2.0';
+
 export const stateVersion = (channel: Channel) => (channel === 'unstable' ? '26.05' : channel);
 
 /** Identificador de 8 dígitos hexadecimales derivado del nombre del equipo (requerido por ZFS). */

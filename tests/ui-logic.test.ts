@@ -5,7 +5,7 @@ import { hasPackage, type PackageIndex, searchIndex } from '../src/lib/packages'
 import { buildErrors, buildWarnings, type ProblemContext } from '../src/lib/problems';
 import { richParts } from '../src/lib/richText';
 import { buildSummaries } from '../src/lib/summaries';
-import { hub, icons, issuesByStep, wizardSteps } from '../src/lib/wizardSteps';
+import { furthestReachable, hub, icons, issuesByStep, pendingSteps, wizardSteps } from '../src/lib/wizardSteps';
 import { makeConfig } from './helpers';
 
 const emptyContext: ProblemContext = {
@@ -61,13 +61,35 @@ describe('wizard steps', () => {
       'El nombre del equipo solo puede contener letras, números y guiones.',
       'La zona horaria no es válida (p. ej. Europe/Madrid).',
       'El disco debe ser una ruta de dispositivo válida, como /dev/sda o /dev/nvme0n1.',
-      'Secure Boot con lanzaboote requiere activar flakes.',
+      'Secure Boot con lanzaboote sustituye a systemd-boot; no es compatible con GRUB.',
     ]);
     expect(issues.network).toMatch(/equipo/);
     expect(issues.time).toMatch(/zona horaria/);
     expect(issues.disk).toMatch(/disco/);
     expect(issues.boot).toMatch(/Secure Boot/);
     expect(issues.language).toBeUndefined();
+  });
+  test('partition layout errors are assigned to the disk step', () => {
+    for (const error of [
+      'Falta una partición montada en / (raíz).',
+      'Falta definir el destino de instalación: diseña un esquema de particiones del disco o pega tu hardware-configuration.nix.',
+      'Punto de montaje repetido: /.',
+    ])
+      expect(issuesByStep([error]).disk, error).toBe(error);
+  });
+  test('steps are reached in order, never skipping one', () => {
+    expect(furthestReachable([true])).toBe(1);
+    expect(furthestReachable([true, true, true])).toBe(3);
+    expect(furthestReachable([true, true, false, true])).toBe(2);
+    expect(furthestReachable(wizardSteps.map(() => true))).toBe(wizardSteps.length - 1);
+  });
+  test('the summary stays locked while steps are unvisited or have errors', () => {
+    const none = Object.fromEntries(wizardSteps.map((step) => [step.id, undefined]));
+    const all = wizardSteps.map(() => true);
+    expect(pendingSteps(all, 3, none)).toEqual([]);
+    expect(pendingSteps([true], 0, none).length).toBe(wizardSteps.length - 2);
+    expect(pendingSteps([true], 1, none).map((step) => step.id)).not.toContain(wizardSteps[1].id);
+    expect(pendingSteps(all, 3, { ...none, disk: 'x' }).map((step) => step.id)).toEqual(['disk']);
   });
   test('with no errors there are no issues', () => {
     expect(Object.values(issuesByStep([])).every((issue) => issue === undefined)).toBe(true);
@@ -90,6 +112,7 @@ describe('summaries', () => {
     expect(summaries({ disko: true, diskScheme: 'zfs', encryption: true }).disk).toBe('ZFS cifrado en /dev/sda');
     expect(summaries({ customLayout: true }).disk).toMatch(/^Esquema propio · 2 partición\(es\) en \/dev\/sda · script$/);
     expect(summaries({}).disk).toBe('Particiones existentes (sin disko)');
+    expect(summaries({ hardwareConfiguration: '' }).disk).toBe('Sin definir');
   });
   test('boot reflects Secure Boot and multiboot', () => {
     expect(summaries({ secureBoot: true, multiboot: true }).boot).toBe('UEFI · Secure Boot (lanzaboote) · multiboot');

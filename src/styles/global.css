@@ -339,6 +339,13 @@ footer p { margin: 0; }
 .wizard-steps .dot { flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid currentColor; font-size: 11px; font-weight: 800; }
 .wizard-steps button.done .dot { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .wizard-steps button.warn:not(.current) { color: var(--danger); }
+.wizard-steps button:disabled { opacity: .45; cursor: not-allowed; }
+.wizard-steps button:disabled:hover { background: transparent; color: var(--muted); }
+.wizard-nav .progress.pending { color: var(--warn); }
+.confirm-dialog { width: min(440px, calc(100% - 24px)); }
+.confirm-dialog .sw-card { grid-template-rows: auto auto; }
+.confirm-dialog .sw-card p { margin: 0; line-height: 1.6; }
+.confirm-dialog .sw-card footer { justify-content: flex-end; }
 .wizard-main { display: grid; grid-template-rows: 1fr auto; min-width: 0; }
 .wizard-stage { padding: 28px 32px; overflow: hidden; min-width: 0; }
 .slide { display: grid; gap: 20px; min-width: 0; }
@@ -361,7 +368,8 @@ footer p { margin: 0; }
   .wizard-steps button { width: auto; white-space: nowrap; }
   .wizard-stage { padding: 20px 16px; }
   .wizard-nav { padding: 12px 16px; }
-  .wizard-nav .progress { display: none; }
+  .wizard-nav .progress:not(.pending) { display: none; }
+  .wizard-nav .progress.pending { font-size: 11px; flex: 1; text-align: center; }
 }
 
 /* Texto con código en línea (mensajes, avisos, pasos) */
