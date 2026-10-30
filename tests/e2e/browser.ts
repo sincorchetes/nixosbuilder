@@ -100,20 +100,17 @@ for (const [lang, path] of [
   check((await page.ev(`document.documentElement.lang`)) === lang, `[${lang}] the page language is ${lang}`);
   check((await page.ev(`document.querySelectorAll('.wizard-steps li').length`)) === 12, `[${lang}] the wizard has 12 steps`);
 
-  // Saltando directamente a la penúltima pantalla no se puede ver el resumen: faltan pasos por revisar.
-  await page.ev(`document.querySelectorAll('.wizard-steps button')[10].click()`);
-  await sleep(300);
+  // Los pasos se recorren en orden: no se puede saltar a uno lejano ni al resumen sin haber revisado los anteriores.
   check(
-    await page.ev(`document.querySelector('.wizard-nav .primary-button').disabled`),
-    `[${lang}] the summary stays locked while steps are unvisited`,
+    await page.ev(
+      `document.querySelectorAll('.wizard-steps button')[2].disabled && !document.querySelectorAll('.wizard-steps button')[1].disabled`,
+    ),
+    `[${lang}] only the next step can be reached; further ones are disabled`,
   );
   check(
     await page.ev(`document.querySelectorAll('.wizard-steps button')[11].disabled`),
     `[${lang}] the summary entry in the sidebar is disabled`,
   );
-  await page.ev(`document.querySelectorAll('.wizard-steps button')[0].click()`);
-  await sleep(300);
-
   const heights = new Set<number>();
   for (let i = 0; i < 12; i++) {
     if (i === 7) {

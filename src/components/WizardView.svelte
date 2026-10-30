@@ -8,7 +8,7 @@
   import WizardSummary from './wizard/WizardSummary.svelte';
   import WizardWelcome from './wizard/WizardWelcome.svelte';
   import { t } from '../lib/i18n';
-  import { icons, pendingSteps, wizardSteps } from '../lib/wizardSteps';
+  import { furthestReachable, icons, pendingSteps, wizardSteps } from '../lib/wizardSteps';
   import type { NixBuilderConfig } from '../lib/generator';
 
   let { config = $bindable(), ctx, summaries, issues, canDownload, onView, onDownload, output }: {
@@ -33,6 +33,7 @@
   // Hasta que todos los pasos previos estén revisados y sin errores no se puede ver el resumen.
   const pending = $derived(pendingSteps(visited, stepIndex, issues));
   const allGreen = $derived(pending.length === 0);
+  const reachable = $derived(furthestReachable(visited));
   const summaryLocked = $derived(stepIndex !== lastStep && !allGreen);
   // Un paso con errores (p. ej. sin elegir el destino de instalación) no se puede abandonar hacia delante.
   const blocked = $derived(!!issues[currentStep.id]);
@@ -47,7 +48,7 @@
 
   function goTo(index: number) {
     const next = Math.min(Math.max(index, 0), lastStep);
-    if (next > stepIndex && blocked) return;
+    if (next > stepIndex && (blocked || next > reachable)) return;
     if (next === lastStep && summaryLocked) return;
     if (next > stepIndex && currentStep.id === 'desktop' && config.desktop === 'none' && !desktopConfirmed) {
       target = next;
@@ -63,7 +64,7 @@
 <div class="wizard">
   <ModeTabs view="simple" onChange={onView} />
   <div class="wizard-window">
-    <WizardSidebar current={stepIndex} {visited} {issues} {summaryLocked} {blocked} onGo={goTo} />
+    <WizardSidebar current={stepIndex} {visited} {issues} {summaryLocked} {blocked} {reachable} onGo={goTo} />
 
     <div class="wizard-main">
       <div class="wizard-stage">

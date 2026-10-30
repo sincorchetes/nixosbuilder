@@ -2,13 +2,15 @@
   import { t } from '../../lib/i18n';
   import { wizardSteps } from '../../lib/wizardSteps';
 
-  let { current, visited, issues, summaryLocked = false, blocked = false, onGo }: {
+  let { current, visited, issues, summaryLocked = false, blocked = false, reachable = Number.MAX_SAFE_INTEGER, onGo }: {
     current: number;
     visited: boolean[];
     issues: Record<string, string | undefined>;
     summaryLocked?: boolean;
     /** El paso actual tiene errores: no se puede avanzar hasta corregirlos. */
     blocked?: boolean;
+    /** Índice del paso más lejano al que se puede ir (no se pueden saltar pasos). */
+    reachable?: number;
     onGo: (index: number) => void;
   } = $props();
 </script>
@@ -22,7 +24,7 @@
           class:current={i === current}
           class:done={i !== current && !!visited[i] && !issues[step.id]}
           class:warn={!!issues[step.id] && !!visited[i] && i !== current}
-          disabled={(step.id === 'summary' && summaryLocked) || (blocked && i > current)}
+          disabled={(step.id === 'summary' && summaryLocked) || (blocked && i > current) || i > reachable}
           aria-current={i === current ? 'step' : undefined}
           onclick={() => onGo(i)}
         >

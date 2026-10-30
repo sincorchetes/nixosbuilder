@@ -5,7 +5,7 @@ import { hasPackage, type PackageIndex, searchIndex } from '../src/lib/packages'
 import { buildErrors, buildWarnings, type ProblemContext } from '../src/lib/problems';
 import { richParts } from '../src/lib/richText';
 import { buildSummaries } from '../src/lib/summaries';
-import { hub, icons, issuesByStep, pendingSteps, wizardSteps } from '../src/lib/wizardSteps';
+import { furthestReachable, hub, icons, issuesByStep, pendingSteps, wizardSteps } from '../src/lib/wizardSteps';
 import { makeConfig } from './helpers';
 
 const emptyContext: ProblemContext = {
@@ -76,6 +76,12 @@ describe('wizard steps', () => {
       'Punto de montaje repetido: /.',
     ])
       expect(issuesByStep([error]).disk, error).toBe(error);
+  });
+  test('steps are reached in order, never skipping one', () => {
+    expect(furthestReachable([true])).toBe(1);
+    expect(furthestReachable([true, true, true])).toBe(3);
+    expect(furthestReachable([true, true, false, true])).toBe(2);
+    expect(furthestReachable(wizardSteps.map(() => true))).toBe(wizardSteps.length - 1);
   });
   test('the summary stays locked while steps are unvisited or have errors', () => {
     const none = Object.fromEntries(wizardSteps.map((step) => [step.id, undefined]));
