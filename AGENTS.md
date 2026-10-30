@@ -3,10 +3,6 @@
 `main` está protegida: no se hace push directo. Cada cambio entra por una rama corta y un pull request.
 El sitio se publica solo (GitHub Pages) al fusionar en `main`; las versiones se marcan con tags `v*`.
 
-> **Estado actual:** este directorio todavía no es un repositorio git. Hasta que se cree (`git init`, remoto,
-> protección de `main`, *Settings → Pages → Source: GitHub Actions*), los pasos de rama, commit, PR y tag
-> no se pueden ejecutar: se hace igualmente el paso 2 y el 3.
-
 Siempre que se terminen de implementar cambios en el proyecto, seguir rigurosamente este ciclo completo:
 
 1. **Rama**:
@@ -16,6 +12,7 @@ Siempre que se terminen de implementar cambios en el proyecto, seguir rigurosame
    - Comprobar que queda limpio: `devenv shell -- lint`.
 3. **Generar tests**:
    - Ejecutar lint, tipos y la suite con la compuerta de cobertura (100 % de líneas): `devenv test`.
+     (con devenv 2.1 solo muestra la salida de lo que falla; el código de salida es el que vale.)
    - Si cambia lo que se genera (archivos `.nix`, esquemas de disco, opciones de NixOS): `devenv shell -- nix-eval` (necesita Nix; también admite un canal: `nix-eval unstable`).
    - Si cambia la interfaz: `devenv shell -- site-build && devenv shell -- e2e` (necesita Chrome).
    - Si cambia la salida generada **a propósito**, aceptar las instantáneas con `bun test --update-snapshots` y revisar la diferencia.
