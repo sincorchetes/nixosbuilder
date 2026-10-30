@@ -114,9 +114,9 @@ describe('layout validation', () => {
     expect(errors).toMatch(/ESP .*no puede cifrarse/);
     expect(errors).toMatch(/no puede tener punto de montaje/);
   });
-  test('warns if FAT32 /boot is missing or if they add up to more than the disk', () => {
+  test('errors if /boot is missing; warns if it is not FAT32 or if they add up to more than the disk', () => {
     const noBoot = check([newPartition('root')]);
-    expect(noBoot.warnings.join()).toMatch(/\/boot/);
+    expect(noBoot.errors.join()).toMatch(/\/boot/);
     const big = check(
       [
         { ...newPartition('esp'), size: '200G' },

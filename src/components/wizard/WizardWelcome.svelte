@@ -10,9 +10,10 @@
     <li>{t('Todo ocurre en tu navegador: no se envía nada a ningún servidor.')}</li>
     <li>{t('Puedes volver a cualquier paso desde el menú lateral.')}</li>
     <li>{t('Los valores por defecto sirven para un equipo de escritorio típico.')}</li>
+    <li>{t('Usa el modelo tradicional de Nix (canales), con Home Manager como módulo: un solo nixos-rebuild aplica sistema y usuario, sin cerrar sesión.')}</li>
   </ul>
   <p class="field-note">
-    {t('¿Prefieres un formulario con todas las opciones a la vez? Usa la')}
+    {t('¿Prefieres un formulario con todas las opciones a la vez, con flakes y disko? Usa la')}
     <button type="button" class="link-button" onclick={onTechnical}>{t('vista técnica')}</button>.
   </p>
 </div>

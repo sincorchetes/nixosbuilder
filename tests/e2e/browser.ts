@@ -100,8 +100,33 @@ for (const [lang, path] of [
   check((await page.ev(`document.documentElement.lang`)) === lang, `[${lang}] the page language is ${lang}`);
   check((await page.ev(`document.querySelectorAll('.wizard-steps li').length`)) === 12, `[${lang}] the wizard has 12 steps`);
 
+  // Saltando directamente a la penúltima pantalla no se puede ver el resumen: faltan pasos por revisar.
+  await page.ev(`document.querySelectorAll('.wizard-steps button')[10].click()`);
+  await sleep(300);
+  check(
+    await page.ev(`document.querySelector('.wizard-nav .primary-button').disabled`),
+    `[${lang}] the summary stays locked while steps are unvisited`,
+  );
+  check(
+    await page.ev(`document.querySelectorAll('.wizard-steps button')[11].disabled`),
+    `[${lang}] the summary entry in the sidebar is disabled`,
+  );
+  await page.ev(`document.querySelectorAll('.wizard-steps button')[0].click()`);
+  await sleep(300);
+
   const heights = new Set<number>();
   for (let i = 0; i < 12; i++) {
+    if (i === 7) {
+      // Sin esquema de particiones ni hardware-configuration.nix, el destino de instalación es un error.
+      check(
+        await page.ev(`document.querySelectorAll('.wizard-steps button')[7].classList.contains('warn')`),
+        `[${lang}] the installation target is flagged until it is defined`,
+      );
+      await page.ev(
+        `(() => { const area = document.querySelector('.wizard textarea'); area.value = '{ ... }: { fileSystems."/" = { device = "/dev/sda1"; fsType = "ext4"; }; }'; area.dispatchEvent(new Event('input', { bubbles: true })); })()`,
+      );
+      await sleep(200);
+    }
     heights.add(await page.ev(`Math.round(document.querySelector('.wizard-window').getBoundingClientRect().height)`));
     if (i < 11) await next(page);
   }

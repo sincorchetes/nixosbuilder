@@ -186,12 +186,15 @@ describe('uncommon warnings', () => {
   });
   test('custom layout: layout and script warnings', () => {
     const text = warnings({ customLayout: true, disko: false, partitions: [{ ...newPartition('root') }] });
-    expect(text).toMatch(/\/boot/);
     expect(text).toMatch(/partition\.sh formatea/);
+    expect(validateConfig(makeConfig({ customLayout: true, disko: false, partitions: [{ ...newPartition('root') }] })).join()).toMatch(
+      /\/boot/,
+    );
   });
   test('encryption with disko, no flakes, Hyprland without Home Manager, GRUB with disko', () => {
     expect(warnings({ disko: true, encryption: true })).toMatch(/cifrado pedirá la contraseña/);
-    expect(warnings({ flakes: false, homeManager: true })).toMatch(/Sin flakes/);
+    expect(warnings({ flakes: false, disko: true })).toMatch(/Sin flakes/);
+    expect(warnings({ flakes: false, homeManager: true })).not.toMatch(/Sin flakes/);
     expect(warnings({ desktop: 'hyprland', homeManager: false })).toMatch(/Hyprland funciona mejor/);
     expect(warnings({ bootloader: 'grub', disko: true })).toMatch(/GRUB y disko/);
   });

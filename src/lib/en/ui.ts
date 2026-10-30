@@ -19,7 +19,8 @@ export const ui: Record<string, string> = {
   'Todo ocurre en tu navegador: no se envía nada a ningún servidor.': 'Everything happens in your browser: nothing is sent to any server.',
   'Puedes volver a cualquier paso desde el menú lateral.': 'You can go back to any step from the side menu.',
   'Los valores por defecto sirven para un equipo de escritorio típico.': 'The defaults suit a typical desktop computer.',
-  '¿Prefieres un formulario con todas las opciones a la vez? Usa la': 'Prefer a form with all the options at once? Use the',
+  '¿Prefieres un formulario con todas las opciones a la vez, con flakes y disko? Usa la':
+    'Prefer a form with all the options at once, including flakes and disko? Use the',
   'Revisa el resumen; pulsa una tarjeta para cambiar ese paso.': 'Review the summary; click a card to change that step.',
   '← Atrás': '← Back',
   Paso: 'Step',
@@ -115,8 +116,16 @@ export const ui: Record<string, string> = {
   'Aplicarlo con disko': 'Apply it with disko',
   'Se genera disko.nix. disko recrea el disco entero: no sirve para conservar particiones ni para dual boot.':
     'disko.nix is generated. disko recreates the whole disk: it cannot keep partitions or be used for dual boot.',
-  'Sin disko se generan partition.sh (particiona, formatea y monta en /mnt) y filesystems.nix (fileSystems, swap y LUKS). Puedes conservar particiones existentes.':
-    'Without disko, partition.sh (partitions, formats and mounts on /mnt) and filesystems.nix (fileSystems, swap and LUKS) are generated. You can keep existing partitions.',
+  'Se generan partition.sh (particiona, formatea y monta en /mnt) y filesystems.nix (fileSystems, swap y LUKS). Puedes conservar particiones existentes.':
+    'partition.sh (partitions, formats and mounts on /mnt) and filesystems.nix (fileSystems, swap and LUKS) are generated. You can keep existing partitions.',
+  'Sin definir': 'Not defined',
+  'Falta completar:': 'Still to complete:',
+  'Sin esquema de particiones se usará el sistema que ya tienes: pega aquí tu hardware-configuration.nix (obligatorio).':
+    'Without a partition layout, your existing system is used: paste your hardware-configuration.nix here (required).',
+  'Para usar disko, cambia a la vista técnica.': 'To use disko, switch to the technical view.',
+  'Secure Boot (lanzaboote) y los flakes están en la vista técnica.': 'Secure Boot (lanzaboote) and flakes are in the technical view.',
+  'Usa el modelo tradicional de Nix (canales), con Home Manager como módulo: un solo nixos-rebuild aplica sistema y usuario, sin cerrar sesión.':
+    'It uses the traditional Nix model (channels), with Home Manager as a module: a single nixos-rebuild applies system and user, with no need to log out.',
   'Particionar el disco con disko': 'Partition the disk with disko',
   Dispositivo: 'Device',
   Esquema: 'Layout',

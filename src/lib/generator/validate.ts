@@ -42,6 +42,10 @@ export function validateConfig(config: NixBuilderConfig): string[] {
     errors.push(
       ...validateLayout(config.partitions, { device: config.diskDevice, diskBytes: config.diskBytes, disko: config.disko }).errors,
     );
+  } else if (!config.disko && !config.hardwareConfiguration.trim()) {
+    errors.push(
+      'Falta definir el destino de instalación: diseña un esquema de particiones del disco o pega tu hardware-configuration.nix.',
+    );
   } else if (config.disko && !/^\/dev\/[a-zA-Z0-9/_-]+$/.test(config.diskDevice)) {
     errors.push('El disco debe ser una ruta de dispositivo válida, como /dev/sda o /dev/nvme0n1.');
   }
@@ -93,8 +97,8 @@ export function getWarnings(config: NixBuilderConfig): string[] {
   if (usesZfs(config)) {
     list.push('ZFS: comprueba que el kernel por defecto del canal elegido sea compatible con OpenZFS.');
   }
-  if (!config.flakes && (config.homeManager || config.disko)) {
-    list.push('Sin flakes tendrás que añadir los canales de home-manager y/o disko manualmente.');
+  if (!config.flakes && config.disko) {
+    list.push('Sin flakes tendrás que añadir el canal de disko manualmente.');
   }
   if (config.desktop === 'hyprland' && !config.homeManager) {
     list.push('Hyprland funciona mejor con Home Manager para gestionar su configuración.');

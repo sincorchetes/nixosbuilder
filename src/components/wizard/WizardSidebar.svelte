@@ -2,10 +2,11 @@
   import { t } from '../../lib/i18n';
   import { wizardSteps } from '../../lib/wizardSteps';
 
-  let { current, visited, issues, onGo }: {
+  let { current, visited, issues, summaryLocked = false, onGo }: {
     current: number;
     visited: boolean[];
     issues: Record<string, string | undefined>;
+    summaryLocked?: boolean;
     onGo: (index: number) => void;
   } = $props();
 </script>
@@ -19,6 +20,7 @@
           class:current={i === current}
           class:done={i !== current && !!visited[i] && !issues[step.id]}
           class:warn={!!issues[step.id]}
+          disabled={step.id === 'summary' && summaryLocked}
           aria-current={i === current ? 'step' : undefined}
           onclick={() => onGo(i)}
         >

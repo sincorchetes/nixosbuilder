@@ -1,5 +1,6 @@
 // API pública del generador (se importa como '../lib/generator').
 
+export { classicConfig } from './classic';
 export { availableSessions, defaultConfig, effectiveSession } from './defaults';
 export { generateFiles } from './files';
 export { isFirewallCustomized, parsePort } from './firewall';
